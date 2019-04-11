@@ -8,9 +8,11 @@ pub struct TimerConfig {
     periph: TimerPeriph,
 
     cr1: Register,
+    dier: Register,
     egr: Register,
     cnt: Register,
     psc: Register,
+    arr: Register,
 }
 
 impl TimerConfig {
@@ -23,9 +25,11 @@ impl TimerConfig {
             periph: timer,
 
             cr1: Register::new(base + 0x00),
+            dier: Register::new(base + 0x0C),
             egr: Register::new(base + 0x14),
             cnt: Register::new(base + 0x24),
             psc: Register::new(base + 0x28),
+            arr: Register::new(base + 0x2C),
         }
     }
 
@@ -39,7 +43,7 @@ impl TimerConfig {
         rcc.write(temp);
     }
 
-    pub fn reset_and_update(&mut self) -> Bit {
+    pub fn update_generator(&mut self) -> Bit {
         Bit::new(self.egr.copy(), 0)
     }
 
@@ -47,11 +51,27 @@ impl TimerConfig {
         Bit::new(self.cr1.copy(), 0)
     }
 
-    pub fn counter (&mut self) -> Register {
+    pub fn auto_reload_register_enabled(&mut self) -> Bit {
+        Bit::new(self.cr1.copy(), 7)
+    }
+
+    pub fn trigger_interrupt_enabled(&mut self) -> Bit {
+        Bit::new(self.dier.copy(), 6)
+    }
+
+    pub fn update_interrupt_enabled(&mut self) -> Bit {
+        Bit::new(self.dier.copy(), 0)
+    }
+
+    pub fn counter(&mut self) -> Register {
         self.cnt.copy()
     }
 
-    pub fn prescaler (&mut self) -> Register {
+    pub fn prescaler(&mut self) -> Register {
         self.psc.copy()
+    }
+
+    pub fn auto_reload_register(&mut self) -> Register {
+        self.arr.copy()
     }
 }

@@ -5,7 +5,6 @@
 
 .global vtable
 .global Default_Handler
-
 /*
  * The actual vector table.
  * Only the size of RAM and 'reset' handler are
