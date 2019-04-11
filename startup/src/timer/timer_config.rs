@@ -8,6 +8,7 @@ pub struct TimerConfig {
     periph: TimerPeriph,
 
     cr1: Register,
+    egr: Register,
     cnt: Register,
     psc: Register,
 }
@@ -22,6 +23,7 @@ impl TimerConfig {
             periph: timer,
 
             cr1: Register::new(base + 0x00),
+            egr: Register::new(base + 0x14),
             cnt: Register::new(base + 0x24),
             psc: Register::new(base + 0x28),
         }
@@ -35,6 +37,10 @@ impl TimerConfig {
             TimerPeriph::_2 => 0x01,
         };
         rcc.write(temp);
+    }
+
+    pub fn reset_and_update(&mut self) -> Bit {
+        Bit::new(self.egr.copy(), 0)
     }
 
     pub fn count(&mut self) -> Bit {
