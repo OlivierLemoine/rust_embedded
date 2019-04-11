@@ -1,7 +1,5 @@
 pub mod gpio_config;
 
-use super::register::Bit;
-
 pub mod mode {
     pub struct Input;
     pub struct Output;
