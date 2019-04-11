@@ -20,7 +20,7 @@
             "preLaunchTask": "make",
             "setupCommands": [
                 {
-                    "text": "file ~/Documents/arm/main.elf"
+                    "text": "file ~/Downloads/rust_embedded/main.elf"
                 },
                 {
                     "text": "target extended-remote :4242"
