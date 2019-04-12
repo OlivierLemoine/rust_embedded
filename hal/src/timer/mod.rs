@@ -1,4 +1,4 @@
-use super::register::{Bit, Register};
+use super::register::{Bit, Register, Register16};
 
 pub type TimerAddr = u32;
 pub const TIMER_2: TimerAddr = 0x4000_0000;
@@ -19,7 +19,7 @@ impl Timer {
         Timer { base: periph }
     }
 
-    pub fn enabled(&mut self) -> Bit {
+    pub fn enabled(&self) -> Bit {
         Bit::new(Register::new(0x4002_3800 + 0x40), 0)
     }
 
@@ -43,15 +43,15 @@ impl Timer {
         Bit::new(Register::new(self.base + 0x0C), 0)
     }
 
-    pub fn counter(&self) -> Register {
-        Register::new(self.base + 0x24)
+    pub fn counter(&self) -> Register16 {
+        Register16::new(self.base + 0x24)
     }
 
-    pub fn prescaler(&self) -> Register {
-        Register::new(self.base + 0x28)
+    pub fn prescaler(&self) -> Register16 {
+        Register16::new(self.base + 0x28)
     }
 
-    pub fn auto_reload_register(&self) -> Register {
-        Register::new(self.base + 0x2C)
+    pub fn auto_reload_register(&self) -> Register16 {
+        Register16::new(self.base + 0x2C)
     }
 }

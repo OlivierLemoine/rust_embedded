@@ -15,7 +15,7 @@ pub unsafe extern "C" fn main() -> ! {
     led.mode().set(true);
     led.value().set(true);
 
-    let mut timer = timer::Timer::new(timer::TIMER_2);
+    let timer = timer::Timer::new(timer::TIMER_2);
     timer.enabled().set(true);
     timer.auto_reload_register_enabled().set(false);
 
@@ -29,7 +29,7 @@ pub unsafe extern "C" fn main() -> ! {
     timer.count().set(true);
 
     loop {
-        // let val = tim2.counter().read() & 0x0000_FFFF;
-        // let val2 = val + 1;
+        let val = timer.counter().read();
+        let _val2 = val + 1;
     }
 }

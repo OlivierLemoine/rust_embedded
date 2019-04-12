@@ -12,15 +12,38 @@ impl Register {
     pub fn copy(&self) -> Register {
         Register { r: self.r }
     }
+}
 
+impl Register {
     pub fn write(&mut self, val: u32) {
         unsafe { write_volatile(self.r as *mut u32, val) };
     }
 
     pub fn read(&self) -> u32 {
-        unsafe {
-            read_volatile(self.r as *const u32)
-        }
+        unsafe { read_volatile(self.r as *const u32) }
+    }
+}
+pub struct Register16 {
+    r: u32,
+}
+
+impl Register16 {
+    pub fn new(addr: u32) -> Register16 {
+        Register16 { r: addr }
+    }
+
+    pub fn copy(&self) -> Register16 {
+        Register16 { r: self.r }
+    }
+}
+
+impl Register16 {
+    pub fn write(&mut self, val: u16) {
+        unsafe { write_volatile(self.r as *mut u32, val as u32) };
+    }
+
+    pub fn read(&self) -> u16 {
+        unsafe { read_volatile(self.r as *const u32) as u16 }
     }
 }
 
