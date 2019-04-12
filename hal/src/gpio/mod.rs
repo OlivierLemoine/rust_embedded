@@ -40,6 +40,20 @@ impl Gpio {
         Bit::new(Register::new(self.base + 0x04), self.bit)
     }
 
+    pub fn speed(&self) -> (Bit, Bit) {
+        (
+            Bit::new(Register::new(self.base + 0x08), self.bit * 2 + 1),
+            Bit::new(Register::new(self.base + 0x08), self.bit * 2),
+        )
+    }
+
+    pub fn pull_up_pull_down(&self) -> (Bit, Bit) {
+        (
+            Bit::new(Register::new(self.base + 0x0C), self.bit * 2 + 1),
+            Bit::new(Register::new(self.base + 0x0C), self.bit * 2),
+        )
+    }
+
     pub fn value(&self) -> MUBit {
         MUBit::new(
             Bit::new(Register::new(self.base + 0x10), self.bit),
