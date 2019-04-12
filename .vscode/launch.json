@@ -10,6 +10,8 @@
             "request": "launch",
             "miDebuggerPath": "/home/olivier/gcc-arm-none-eabi-8-2018-q4-major/bin/arm-none-eabi-gdb",
             "program": "${workspaceRoot}/main.elf",
+            "avoidWindowsConsoleRedirection": true,
+            "serverLaunchTimeout": 1000,
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

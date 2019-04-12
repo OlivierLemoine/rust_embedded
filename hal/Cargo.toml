@@ -9,7 +9,6 @@ edition = "2018"
 [profile.dev]
 opt-level = 0
 debug = true
-
 panic = 'abort'
-target = 'thumbv7em-none-eabihf'
-crate-type = ['staticlib']
+rpath = false
+lto = false

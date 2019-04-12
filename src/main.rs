@@ -17,13 +17,18 @@ pub unsafe extern "C" fn main() -> ! {
 
     let timer = timer::Timer::new(timer::TIMER_2);
     timer.enabled().set(true);
-    timer.auto_reload_register_enabled().set(false);
 
-    timer.auto_reload_register().write(0x00FF);
+    timer.auto_reload_register_enabled().set(false);
+    timer.auto_reload_register().write(0xFFFF);
+
+    timer.prescaler().write(0xF);
+
+    timer.clock_division().1.set(true);
 
     timer.update_interrupt_enabled().set(true);
 
     timer.update_generator().set(true);
+    
     timer.count().set(true);
 
     loop {

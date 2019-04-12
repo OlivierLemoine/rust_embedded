@@ -11,3 +11,5 @@ HAL = { path = "hal" }
 opt-level = 0
 debug = true
 panic = 'abort'
+rpath = false
+lto = false
