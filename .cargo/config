@@ -1,0 +1,15 @@
+[build]
+target = 'thumbv7em-none-eabihf'
+crate-type = ['staticlib']
+
+[target.thumbv7em-none-eabihf]
+linker = "arm-none-eabi-gcc"
+rustflags = [
+    "-Clink-arg=-T./boot/stm32f446.ld",
+    "-Clink-arg=-mthumb",
+    "-Clink-arg=-mcpu=cortex-m4",
+    "-Clink-arg=-specs=nosys.specs",
+    "-Clink-arg=-nostdlib",
+    "-Clink-arg=-lgcc",
+    "-Clink-arg=-o main.elf",
+]
