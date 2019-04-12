@@ -19,7 +19,7 @@ impl Register {
 
     pub fn read(&self) -> u32 {
         unsafe {
-            return read_volatile(self.r as *const u32);
+            read_volatile(self.r as *const u32)
         }
     }
 }
@@ -43,8 +43,28 @@ impl Bit {
         }
     }
 
-    pub fn get(&mut self) -> bool {
+    pub fn get(&self) -> bool {
         let tmp = self.r.read();
         (tmp & (1 << self.b)) != 0
+    }
+}
+
+pub struct MUBit {
+    //Multiple register Bit
+    r: Bit,
+    w: Bit,
+}
+
+impl MUBit {
+    pub fn new(r: Bit, w: Bit) -> MUBit {
+        MUBit { r, w }
+    }
+
+    pub fn set(&mut self, value: bool) {
+        self.w.set(value);
+    }
+
+    pub fn get(&self) -> bool {
+        self.r.get()
     }
 }

@@ -13,6 +13,6 @@ impl NVIC {
     }
 
     pub fn tim2_set_enabled(&mut self) -> Bit {
-        Bit::new(Register::new(0xE000_E100 + 0), 28)
+        Bit::new(Register::new(0xE000_E100 /*+ 0*/), 28)
     }
 }
