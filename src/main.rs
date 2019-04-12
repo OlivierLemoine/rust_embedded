@@ -11,12 +11,13 @@
 
 mod gpio;
 mod nvic;
+mod register;
 mod timer;
 mod usart;
 
 mod panic_handler;
 
-mod register;
+mod kernel;
 
 fn timer_config() {
     let timer = timer::Timer::new(timer::TIMER_2);
@@ -51,6 +52,8 @@ pub unsafe extern "C" fn main() -> ! {
     led.enabled().set(true);
     led.mode().1.set(true);
     led.value().set(true);
+
+    let v = kernel::alloc::malloc(10).unwrap();
 
     // let rx = gpio::Gpio::new(gpio::GPIO_A, 3).unwrap();
     // let tx = gpio::Gpio::new(gpio::GPIO_A, 2).unwrap();
