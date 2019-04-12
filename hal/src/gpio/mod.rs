@@ -1,67 +1,62 @@
-pub mod gpio_config;
+use super::register::{Bit, Register};
 
-pub mod mode {
-    pub struct Input;
-    pub struct Output;
+pub enum GpioPeriph {
+    A,
+    C,
 }
 
-pub mod state {
-    pub struct Enable;
-    pub struct Disable;
+pub struct Gpio {
+    periph: GpioPeriph,
+
+    moder: Register,
+    odr: Register,
+    idr: Register,
+
+    bit: u32,
 }
 
-pub struct DontCare;
+impl Gpio {
+    pub fn new(gpio: GpioPeriph, bit: u32) -> Gpio {
+        let base = match gpio {
+            GpioPeriph::A => 0x4002_0000,
+            GpioPeriph::C => 0x4002_0800,
+        };
 
-pub struct Gpio<STATE, MODE> {
-    periph: gpio_config::GpioConfig,
-    state: STATE,
-    mode: MODE,
-}
-
-impl Gpio<state::Disable, DontCare> {
-    pub fn new(gpio: gpio_config::GpioPeriph, bit: u32) -> Gpio<state::Disable, DontCare> {
         Gpio {
-            periph: gpio_config::GpioConfig::new(gpio, bit),
-            state: state::Disable,
-            mode: DontCare,
+            periph: gpio,
+
+            moder: Register::new(base + 0x00),
+            idr: Register::new(base + 0x10),
+            odr: Register::new(base + 0x14),
+
+            bit: bit,
         }
     }
 
-    pub fn into_input(mut self) -> Gpio<state::Enable, mode::Input> {
-        self.periph.enable();
-        let (mut bit1, mut bit2) = self.periph.mode();
-        bit1.set(false);
-        bit2.set(false);
+    pub fn enabled(&mut self) -> Bit {
+        let bit = match self.periph {
+            GpioPeriph::A => 0,
+            GpioPeriph::C => 2,
+        };
+        Bit::new(Register::new(0x4002_3800 + 0x30), bit)
+    }
 
-        Gpio {
-            periph: self.periph,
-            state: state::Enable,
-            mode: mode::Input,
+    pub fn mode(&mut self) -> Bit {
+        Bit::new(self.moder.copy(), self.bit * 2)
+    }
+
+    pub fn set_bit(&mut self, val: bool) {
+        let tmp = self.odr.read();
+
+        if val {
+            self.odr.write(tmp | (1 << self.bit));
+        } else {
+            self.odr.write(tmp & !(1 << self.bit));
         }
     }
 
-    pub fn into_output(mut self) -> Gpio<state::Enable, mode::Output> {
-        self.periph.enable();
-        let (mut bit1, mut bit2) = self.periph.mode();
-        bit1.set(false);
-        bit2.set(true);
-
-        Gpio {
-            periph: self.periph,
-            state: state::Enable,
-            mode: mode::Output,
-        }
-    }
-}
-
-impl Gpio<state::Enable, mode::Output> {
-    pub fn write(&mut self, val: bool) {
-        self.periph.set_bit(val);
-    }
-}
-
-impl Gpio<state::Enable, mode::Input> {
-    pub fn read(&mut self) -> bool{
-        self.periph.get_bit()
+    pub fn get_bit(&mut self) -> bool {
+        let tmp = self.idr.read();
+        (tmp & (1 << self.bit)) != 0
     }
 }
