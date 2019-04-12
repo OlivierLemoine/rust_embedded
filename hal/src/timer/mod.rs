@@ -4,15 +4,16 @@ pub enum TimerPeriph {
     _2,
 }
 
+// CR1 = 0x00
+// DIER = 0x0C
+// EGR = 0x14
+// CNT = 0x24
+// PSC = 0x28
+// ARR = 0x2C
+
 pub struct Timer {
     periph: TimerPeriph,
-
-    cr1: Register,
-    dier: Register,
-    egr: Register,
-    cnt: Register,
-    psc: Register,
-    arr: Register,
+    base: u32,
 }
 
 impl Timer {
@@ -24,54 +25,43 @@ impl Timer {
         Timer {
             periph: timer,
 
-            cr1: Register::new(base + 0x00),
-            dier: Register::new(base + 0x0C),
-            egr: Register::new(base + 0x14),
-            cnt: Register::new(base + 0x24),
-            psc: Register::new(base + 0x28),
-            arr: Register::new(base + 0x2C),
+            base,
         }
     }
 
-    pub fn enable(&mut self) {
-        let mut rcc = Register::new(0x4002_3800 + 0x40);
-
-        let mut temp = rcc.read();
-        temp |= match self.periph {
-            TimerPeriph::_2 => 0x01,
-        };
-        rcc.write(temp);
+    pub fn enabled(&mut self) -> Bit {
+        Bit::new(Register::new(0x4002_3800 + 0x40), 0)
     }
 
-    pub fn update_generator(&mut self) -> Bit {
-        Bit::new(self.egr.copy(), 0)
+    pub fn update_generator(&self) -> Bit {
+        Bit::new(Register::new(self.base + 0x14), 0)
     }
 
-    pub fn count(&mut self) -> Bit {
-        Bit::new(self.cr1.copy(), 0)
+    pub fn count(&self) -> Bit {
+        Bit::new(Register::new(self.base /* + 0 */), 0)
     }
 
-    pub fn auto_reload_register_enabled(&mut self) -> Bit {
-        Bit::new(self.cr1.copy(), 7)
+    pub fn auto_reload_register_enabled(&self) -> Bit {
+        Bit::new(Register::new(self.base /* + 0 */), 7)
     }
 
-    pub fn trigger_interrupt_enabled(&mut self) -> Bit {
-        Bit::new(self.dier.copy(), 6)
+    pub fn trigger_interrupt_enabled(&self) -> Bit {
+        Bit::new(Register::new(self.base + 0x0C), 6)
     }
 
-    pub fn update_interrupt_enabled(&mut self) -> Bit {
-        Bit::new(self.dier.copy(), 0)
+    pub fn update_interrupt_enabled(&self) -> Bit {
+        Bit::new(Register::new(self.base + 0x0C), 0)
     }
 
-    pub fn counter(&mut self) -> Register {
-        self.cnt.copy()
+    pub fn counter(&self) -> Register {
+        Register::new(self.base + 0x24)
     }
 
-    pub fn prescaler(&mut self) -> Register {
-        self.psc.copy()
+    pub fn prescaler(&self) -> Register {
+        Register::new(self.base + 0x28)
     }
 
-    pub fn auto_reload_register(&mut self) -> Register {
-        self.arr.copy()
+    pub fn auto_reload_register(&self) -> Register {
+        Register::new(self.base + 0x2C)
     }
 }

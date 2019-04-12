@@ -1,62 +1,42 @@
-use super::register::{Bit, Register};
+use super::register::{Bit, MUBit, Register};
 
-pub enum GpioPeriph {
-    A,
-    C,
-}
+// MODER = base + 0x00
+// IDR = base + 0x10
+// ODR = base + 0x14
+
+// A = 0x4002_0000
+// C = 0x4002_0800
+
+pub type GpioAddr = u32;
+pub const GPIO_A: GpioAddr = 0x4002_0000;
 
 pub struct Gpio {
-    periph: GpioPeriph,
-
-    moder: Register,
-    odr: Register,
-    idr: Register,
-
+    base: u32,
     bit: u32,
 }
 
 impl Gpio {
-    pub fn new(gpio: GpioPeriph, bit: u32) -> Gpio {
-        let base = match gpio {
-            GpioPeriph::A => 0x4002_0000,
-            GpioPeriph::C => 0x4002_0800,
-        };
-
-        Gpio {
-            periph: gpio,
-
-            moder: Register::new(base + 0x00),
-            idr: Register::new(base + 0x10),
-            odr: Register::new(base + 0x14),
-
-            bit: bit,
-        }
+    pub fn new(periph: GpioAddr, bit: u32) -> Gpio {
+        Gpio { base: periph, bit }
     }
 
-    pub fn enabled(&mut self) -> Bit {
-        let bit = match self.periph {
-            GpioPeriph::A => 0,
-            GpioPeriph::C => 2,
+    pub fn enabled(&self) -> Bit {
+        let bit = match self.base {
+            0x4002_0000 => 0,
+            0x4002_0800 => 2,
+            _ => 0,
         };
         Bit::new(Register::new(0x4002_3800 + 0x30), bit)
     }
 
-    pub fn mode(&mut self) -> Bit {
-        Bit::new(self.moder.copy(), self.bit * 2)
+    pub fn mode(&self) -> Bit {
+        Bit::new(Register::new(self.base /* + 0x00*/), self.bit * 2)
     }
 
-    pub fn set_bit(&mut self, val: bool) {
-        let tmp = self.odr.read();
-
-        if val {
-            self.odr.write(tmp | (1 << self.bit));
-        } else {
-            self.odr.write(tmp & !(1 << self.bit));
-        }
-    }
-
-    pub fn get_bit(&mut self) -> bool {
-        let tmp = self.idr.read();
-        (tmp & (1 << self.bit)) != 0
+    pub fn value(&self) -> MUBit {
+        MUBit::new(
+            Bit::new(Register::new(self.base + 0x10), self.bit),
+            Bit::new(Register::new(self.base + 0x14), self.bit),
+        )
     }
 }
