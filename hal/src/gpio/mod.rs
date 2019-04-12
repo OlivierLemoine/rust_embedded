@@ -4,11 +4,18 @@ use super::register::{Bit, MUBit, Register};
 // IDR = base + 0x10
 // ODR = base + 0x14
 
-// A = 0x4002_0000
-// C = 0x4002_0800
-
 pub type GpioAddr = u32;
 pub const GPIO_A: GpioAddr = 0x4002_0000;
+pub const GPIO_B: GpioAddr = 0x4002_0400;
+pub const GPIO_C: GpioAddr = 0x4002_0800;
+pub const GPIO_D: GpioAddr = 0x4002_0C00;
+pub const GPIO_E: GpioAddr = 0x4002_1000;
+pub const GPIO_F: GpioAddr = 0x4002_1400;
+pub const GPIO_G: GpioAddr = 0x4002_1800;
+pub const GPIO_H: GpioAddr = 0x4002_1C00;
+pub const GPIO_I: GpioAddr = 0x4002_2000;
+pub const GPIO_J: GpioAddr = 0x4002_2400;
+pub const GPIO_K: GpioAddr = 0x4002_2800;
 
 pub struct Gpio {
     base: GpioAddr,
