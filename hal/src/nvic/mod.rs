@@ -1,23 +1,18 @@
 use super::register::{Bit, Register};
 
-pub struct NVIC {
-    pub iser: u32,
-    pub icer: u32,
-    pub ispr: u32,
-    pub icpr: u32,
-}
+// ISER = 0xE000_E100
+// ICER = 0xE000_E180
+// ISPR = 0xE000_E200
+// ICPR = 0xE000_E280
+
+pub struct NVIC {}
 
 impl NVIC {
     pub fn new() -> NVIC {
-        NVIC {
-            iser: 0xE000_E100,
-            icer: 0xE000_E180,
-            ispr: 0xE000_E200,
-            icpr: 0xE000_E280,
-        }
+        NVIC {}
     }
 
     pub fn tim2_set_enabled(&mut self) -> Bit {
-        Bit::new(Register::new(self.iser + 0), 28)
+        Bit::new(Register::new(0xE000_E100 + 0), 28)
     }
 }
