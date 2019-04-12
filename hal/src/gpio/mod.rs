@@ -13,9 +13,9 @@ pub const GPIO_E: GpioAddr = 0x4002_1000;
 pub const GPIO_F: GpioAddr = 0x4002_1400;
 pub const GPIO_G: GpioAddr = 0x4002_1800;
 pub const GPIO_H: GpioAddr = 0x4002_1C00;
-pub const GPIO_I: GpioAddr = 0x4002_2000;
-pub const GPIO_J: GpioAddr = 0x4002_2400;
-pub const GPIO_K: GpioAddr = 0x4002_2800;
+// pub const GPIO_I: GpioAddr = 0x4002_2000;
+// pub const GPIO_J: GpioAddr = 0x4002_2400;
+// pub const GPIO_K: GpioAddr = 0x4002_2800;
 
 pub struct Gpio {
     base: GpioAddr,
@@ -33,14 +33,23 @@ impl Gpio {
     pub fn enabled(&self) -> Bit {
         let bit = match self.base {
             0x4002_0000 => 0,
+            0x4002_0400 => 1,
             0x4002_0800 => 2,
+            0x4002_0C00 => 3,
+            0x4002_1000 => 4,
+            0x4002_1400 => 5,
+            0x4002_1800 => 6,
+            0x4002_1C00 => 7,
             _ => 0,
         };
         Bit::new(Register::new(0x4002_3800 + 0x30), bit)
     }
 
-    pub fn mode(&self) -> Bit {
-        Bit::new(Register::new(self.base /* + 0x00*/), self.bit * 2)
+    pub fn mode(&self) -> (Bit, Bit) {
+        (
+            Bit::new(Register::new(self.base), self.bit * 2 + 1),
+            Bit::new(Register::new(self.base), self.bit * 2),
+        )
     }
 
     pub fn open_drain_not_push_pull(&self) -> Bit {

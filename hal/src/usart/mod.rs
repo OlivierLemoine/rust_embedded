@@ -15,6 +15,17 @@ impl Usart {
         Usart { base: periph }
     }
 
+    pub fn enabled(&self) -> Bit {
+        let bit = match self.base {
+            0x4000_4400 => 17,
+            0x4000_4800 => 18,
+            0x4000_4C00 => 19,
+            0x4000_5000 => 20,
+            _ => 0,
+        };
+        Bit::new(Register::new(0x4002_3800 + 0x40), bit)
+    }
+
     pub fn transmit_data_register_empty(&self) -> Bit {
         Bit::new(Register::new(self.base), 7)
     }
@@ -35,7 +46,7 @@ impl Usart {
         Register16::new(self.base + 0x08)
     }
 
-    pub fn enabled(&self) -> Bit {
+    pub fn usart_enabled(&self) -> Bit {
         Bit::new(Register::new(self.base + 0x0C), 13)
     }
 
