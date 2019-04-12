@@ -1,6 +1,6 @@
 [build]
 target = 'thumbv7em-none-eabihf'
-crate-type = ['staticlib']
+# crate-type = ['staticlib']
 
 
 [target.thumbv7em-none-eabihf]
@@ -12,5 +12,5 @@ rustflags = [
     "-Clink-arg=-specs=nosys.specs",
     "-Clink-arg=-nostdlib",
     "-Clink-arg=-lgcc",
-    "-Clink-arg=-o main.elf",
+    "-Clink-arg=-omain.elf",
 ]

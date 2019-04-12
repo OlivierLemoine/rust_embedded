@@ -22,7 +22,7 @@ ASFLAGS += -fmessage-length=0
 # RUST compilation directives
 # RUST_FLAGS += --emit=obj
 RUST_FLAGS += -C panic=abort
-RUST_FLAGS += -C opt-level=0
+RUST_FLAGS += -C opt-level=z
 RUST_FLAGS += -C debuginfo=2
 RUST_FLAGS += --target=thumbv7em-none-eabihf
 RUST_FLAGS_BIN += --crate-type=staticlib
@@ -53,8 +53,8 @@ all: $(TARGET).elf
 %.o: %.S
 	$(CC) $(DEBUG) $(ASFLAGS) $< -o $@
 %.o: %.rs
-	rustc $(RUST_FLAGS) $(RUST_FLAGS_LIB) $(RUST_LIB) -o $(RUST_LIB_BIN)
-	rustc $(RUST_FLAGS) $(RUST_FLAGS_BIN) $(RUST_INCLUDE_LIB) $< -o $@
+	# rustc $(RUST_FLAGS) $(RUST_FLAGS_LIB) $(RUST_LIB) -o $(RUST_LIB_BIN)
+	rustc $(RUST_FLAGS) $(RUST_FLAGS_BIN) $< -o $@
 $(TARGET).elf: $(OBJS)
 	$(CC) $^ $(LFLAGS) -o $@
 

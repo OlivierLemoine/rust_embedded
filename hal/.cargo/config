@@ -1,3 +1,0 @@
-[build]
-target = 'thumbv7em-none-eabihf'
-crate-type = ['lib']
