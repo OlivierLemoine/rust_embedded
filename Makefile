@@ -27,8 +27,8 @@ RUST_FLAGS += -C debuginfo=2
 RUST_FLAGS += --target=thumbv7em-none-eabihf
 RUST_FLAGS_BIN += --crate-type=staticlib
 RUST_FLAGS_LIB += --crate-type=lib
-RUST_LIB_NAME += startup
-RUST_LIB += ./startup/src/lib.rs
+RUST_LIB_NAME += HAL
+RUST_LIB += ./hal/src/lib.rs
 RUST_LIB_BIN += $(RUST_LIB:.rs=.rlib)
 RUST_INCLUDE_LIB += --extern $(RUST_LIB_NAME)=$(RUST_LIB_BIN)
 # Linker directives.

@@ -8,7 +8,7 @@ edition = "2018"
 cc = "1.0"
 
 [dependencies]
-startup = { path = "startup" }
+HAL = { path = "hal" }
 
 [profile.dev]
 opt-level = 0

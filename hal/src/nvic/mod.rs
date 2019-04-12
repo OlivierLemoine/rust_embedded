@@ -1,14 +1,10 @@
 use super::register::{Bit, Register};
 
-enum nvic_list {
-    tim2_irq_handler = 0x0000_00B0,
-}
-
 pub struct NVIC {
-    iser: u32,
-    icer: u32,
-    ispr: u32,
-    icpr: u32,
+    pub iser: u32,
+    pub icer: u32,
+    pub ispr: u32,
+    pub icpr: u32,
 }
 
 impl NVIC {

@@ -1,10 +1,10 @@
 #![no_main]
 #![no_std]
 
-extern crate startup;
-use startup::gpio;
-use startup::timer;
-use startup::nvic;
+extern crate HAL;
+use HAL::gpio;
+use HAL::timer;
+use HAL::nvic;
 
 #[no_mangle]
 pub unsafe extern "C" fn main() -> ! {
@@ -13,7 +13,7 @@ pub unsafe extern "C" fn main() -> ! {
 
     let gpio = gpio::Gpio::new(gpio::gpio_config::GpioPeriph::A, 5);
 
-    gpio.into_output().write(true);
+    gpio.into_output().write(false);
 
     let mut tim2 = timer::timer_config::TimerConfig::new(timer::timer_config::TimerPeriph::_2);
     tim2.enable();
