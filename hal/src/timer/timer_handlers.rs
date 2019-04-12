@@ -1,19 +1,22 @@
-use super::super::register::{Bit, Register};
-
-static mut TEST_VAR: bool = false;
+// use super::super::register::{Bit, Register};
 
 #[no_mangle]
 pub unsafe extern "C" fn TIM2_IRQHandler() {
-    Bit::new(Register::new(0x4000_0010), 0).set(false);
+    super::Timer::new(super::TIMER_2)
+        .update_interrupt_flag()
+        .set(false);
+}
 
-    match TEST_VAR {
-        true => {
-            TEST_VAR = false;
-            Bit::new(Register::new(0x4002_0014), 0).set(false);
-        }
-        false => {
-            TEST_VAR = true;
-            Bit::new(Register::new(0x4002_0014), 0).set(true);
-        }
-    }
+#[no_mangle]
+pub unsafe extern "C" fn TIM3_IRQHandler() {
+    super::Timer::new(super::TIMER_3)
+        .update_interrupt_flag()
+        .set(false);
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn TIM4_IRQHandler() {
+    super::Timer::new(super::TIMER_4)
+        .update_interrupt_flag()
+        .set(false);
 }

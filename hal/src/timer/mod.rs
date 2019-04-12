@@ -1,5 +1,7 @@
 use super::register::{Bit, Register, Register16};
 
+mod timer_handlers;
+
 pub type TimerAddr = u32;
 pub const TIMER_2: TimerAddr = 0x4000_0000;
 pub const TIMER_3: TimerAddr = 0x4000_0400;
@@ -27,7 +29,7 @@ impl Timer {
     pub fn enabled(&self) -> Bit {
         Bit::new(Register::new(0x4002_3800 + 0x40), 0)
     }
-    
+
     pub fn auto_reload_register_enabled(&self) -> Bit {
         Bit::new(Register::new(self.base), 7)
     }
@@ -55,16 +57,20 @@ impl Timer {
         )
     }
 
-    pub fn update_generator(&self) -> Bit {
-        Bit::new(Register::new(self.base + 0x14), 0)
-    }
-
     pub fn trigger_interrupt_enabled(&self) -> Bit {
         Bit::new(Register::new(self.base + 0x0C), 6)
     }
 
     pub fn update_interrupt_enabled(&self) -> Bit {
         Bit::new(Register::new(self.base + 0x0C), 0)
+    }
+
+    pub fn update_interrupt_flag(&self) -> Bit {
+        Bit::new(Register::new(self.base + 0x10), 0)
+    }
+
+    pub fn update_generator(&self) -> Bit {
+        Bit::new(Register::new(self.base + 0x14), 0)
     }
 
     pub fn counter(&self) -> Register16 {

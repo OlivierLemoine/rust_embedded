@@ -251,11 +251,11 @@ vtable:
     @ .weak      TIM2_IRQHandler            
     @ .thumb_set TIM2_IRQHandler,Default_Handler
                     
-    .weak      TIM3_IRQHandler            
-    .thumb_set TIM3_IRQHandler,Default_Handler
+    @ .weak      TIM3_IRQHandler            
+    @ .thumb_set TIM3_IRQHandler,Default_Handler
                     
-    .weak      TIM4_IRQHandler            
-    .thumb_set TIM4_IRQHandler,Default_Handler
+    @ .weak      TIM4_IRQHandler            
+    @ .thumb_set TIM4_IRQHandler,Default_Handler
                     
     .weak      I2C1_EV_IRQHandler   
     .thumb_set I2C1_EV_IRQHandler,Default_Handler
