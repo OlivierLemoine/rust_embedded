@@ -248,8 +248,8 @@ vtable:
     .weak      TIM1_CC_IRQHandler   
     .thumb_set TIM1_CC_IRQHandler,Default_Handler
                     
-    .weak      TIM2_IRQHandler            
-    .thumb_set TIM2_IRQHandler,Default_Handler
+    @ .weak      TIM2_IRQHandler            
+    @ .thumb_set TIM2_IRQHandler,Default_Handler
                     
     .weak      TIM3_IRQHandler            
     .thumb_set TIM3_IRQHandler,Default_Handler
