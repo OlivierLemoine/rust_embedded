@@ -11,7 +11,7 @@ pub type GpioAddr = u32;
 pub const GPIO_A: GpioAddr = 0x4002_0000;
 
 pub struct Gpio {
-    base: u32,
+    base: GpioAddr,
     bit: u32,
 }
 

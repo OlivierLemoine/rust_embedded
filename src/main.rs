@@ -10,25 +10,23 @@ use HAL::timer;
 pub unsafe extern "C" fn main() -> ! {
     nvic::NVIC::new().tim2_set_enabled().set(true);
 
-    // let mut gpio = gpio::Gpio::new(gpio::GpioPeriph::A, 5);
-    // gpio.enabled().set(true);
-    // gpio.mode().set(true);
-    // gpio.set_bit(true);
+    let led = gpio::Gpio::new(gpio::GPIO_A, 5);
+    led.enabled().set(true);
+    led.mode().set(true);
+    led.value().set(true);
 
-    // let mut tim2 = timer::Timer::new(timer::TimerPeriph::_2);
-    // tim2.enable();
-
-    // tim2.auto_reload_register_enabled().set(true);
+    let mut timer = timer::Timer::new(timer::TIMER_2);
+    timer.enabled().set(true);
+    timer.auto_reload_register_enabled().set(false);
 
     // let tmp = tim2.auto_reload_register().read();
     // tim2.auto_reload_register()
     //     .write((tmp & 0xFFFF_0000) | 0x0000_00FF);
 
-    // tim2.trigger_interrupt_enabled().set(true);
-    // tim2.update_interrupt_enabled().set(true);
+    timer.update_interrupt_enabled().set(true);
 
-    // tim2.update_generator().set(true);
-    // tim2.count().set(true);
+    timer.update_generator().set(true);
+    timer.count().set(true);
 
     loop {
         // let val = tim2.counter().read() & 0x0000_FFFF;

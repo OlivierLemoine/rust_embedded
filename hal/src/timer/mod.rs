@@ -1,8 +1,7 @@
 use super::register::{Bit, Register};
 
-pub enum TimerPeriph {
-    _2,
-}
+pub type TimerAddr = u32;
+pub const TIMER_2: TimerAddr = 0x4000_0000;
 
 // CR1 = 0x00
 // DIER = 0x0C
@@ -12,21 +11,12 @@ pub enum TimerPeriph {
 // ARR = 0x2C
 
 pub struct Timer {
-    periph: TimerPeriph,
     base: u32,
 }
 
 impl Timer {
-    pub fn new(timer: TimerPeriph) -> Timer {
-        let base = match timer {
-            TimerPeriph::_2 => 0x4000_0000,
-        };
-
-        Timer {
-            periph: timer,
-
-            base,
-        }
+    pub fn new(periph: TimerAddr) -> Timer {
+        Timer { base: periph }
     }
 
     pub fn enabled(&mut self) -> Bit {
