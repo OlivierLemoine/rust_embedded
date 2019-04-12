@@ -19,9 +19,7 @@ pub unsafe extern "C" fn main() -> ! {
     timer.enabled().set(true);
     timer.auto_reload_register_enabled().set(false);
 
-    // let tmp = tim2.auto_reload_register().read();
-    // tim2.auto_reload_register()
-    //     .write((tmp & 0xFFFF_0000) | 0x0000_00FF);
+    timer.auto_reload_register().write(0x00FF);
 
     timer.update_interrupt_enabled().set(true);
 
