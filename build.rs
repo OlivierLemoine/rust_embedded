@@ -9,6 +9,7 @@ fn main() {
             "-mthumb",
             "-o ./boot/vector_table.o"]
         );
+        
     Command::new("arm-none-eabi-gcc")
         .args(&["./boot/core.S",
             "-C",

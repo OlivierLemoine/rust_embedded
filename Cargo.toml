@@ -10,5 +10,4 @@ HAL = { path = "hal" }
 [profile.dev]
 opt-level = 0
 debug = true
-
 panic = 'abort'
