@@ -16,8 +16,11 @@ pub struct Gpio {
 }
 
 impl Gpio {
-    pub fn new(periph: GpioAddr, bit: u32) -> Gpio {
-        Gpio { base: periph, bit }
+    pub fn new(periph: GpioAddr, bit: u32) -> Result<Gpio, bool> {
+        if bit > 15 {
+            return Err(false);
+        }
+        Ok(Gpio { base: periph, bit })
     }
 
     pub fn enabled(&self) -> Bit {
@@ -31,6 +34,10 @@ impl Gpio {
 
     pub fn mode(&self) -> Bit {
         Bit::new(Register::new(self.base /* + 0x00*/), self.bit * 2)
+    }
+
+    pub fn open_drain_not_push_pull(&self) -> Bit {
+        Bit::new(Register::new(self.base + 0x04), self.bit)
     }
 
     pub fn value(&self) -> MUBit {

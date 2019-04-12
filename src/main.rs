@@ -10,7 +10,7 @@ use HAL::timer;
 pub unsafe extern "C" fn main() -> ! {
     nvic::NVIC::new().tim2_set_enabled().set(true);
 
-    let led = gpio::Gpio::new(gpio::GPIO_A, 5);
+    let led = gpio::Gpio::new(gpio::GPIO_A, 5).unwrap();
     led.enabled().set(true);
     led.mode().set(true);
     led.value().set(true);
