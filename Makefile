@@ -22,7 +22,7 @@ ASFLAGS += -fmessage-length=0
 # RUST compilation directives
 # RUST_FLAGS += --emit=obj
 RUST_FLAGS += -C panic=abort
-RUST_FLAGS += -C opt-level=z
+RUST_FLAGS += -C opt-level=0
 RUST_FLAGS += -C debuginfo=2
 RUST_FLAGS += --target=thumbv7em-none-eabihf
 RUST_FLAGS_BIN += --crate-type=staticlib
@@ -63,5 +63,5 @@ clean:
 	rm $(OBJS) $(TARGET).elf $(RUST_LIB_BIN)
 
 .PHONY: remake
-remake: clean
-		make all
+remake: 
+	make clean; make all

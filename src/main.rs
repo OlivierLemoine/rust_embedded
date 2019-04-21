@@ -53,10 +53,7 @@ pub unsafe extern "C" fn main() -> ! {
     led.mode().1.set(true);
     led.value().set(true);
 
-    kernel::alloc::init();
-    let v = kernel::alloc::malloc(10).unwrap();
-
-    kernel::alloc::free(v);
+    kernel::alloc::alloc_init();
 
     // let rx = gpio::Gpio::new(gpio::GPIO_A, 3).unwrap();
     // let tx = gpio::Gpio::new(gpio::GPIO_A, 2).unwrap();

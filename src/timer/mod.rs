@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use super::register::{Bit, Register, Register16};
 
 mod timer_handlers;

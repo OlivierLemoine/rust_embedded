@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use super::register::{Bit, Register, Register16, Register8};
 
 pub type UsartAddr = u32;
