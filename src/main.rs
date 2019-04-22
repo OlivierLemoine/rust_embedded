@@ -45,10 +45,10 @@ pub unsafe extern "C" fn SVC_Handler() {
 
 #[no_mangle]
 pub unsafe extern "C" fn main() -> ! {
-    let rcc = rcc::Rcc::new();
-    rcc.hsi_on_not_off().set(true);
-    rcc.system_clock_switch().0.set(false);
-    rcc.system_clock_switch().1.set(false);
+    rcc::Rcc::new().enable_hsi().sysclock_into_hsi();
+    // rcc.hsi_on_not_off().set(true);
+    // rcc.system_clock_switch().0.set(false);
+    // rcc.system_clock_switch().1.set(false);
 
     // register::Register::new(0x4002_3800 + 0x04).write(0x2741_2A04);
     // register::Register::new(0x4002_3800 + 0x08).write(0x0008_1000);
