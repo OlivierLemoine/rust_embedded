@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use super::register::{Bit, MUBit, Register};
 
 // MODER = base + 0x00
@@ -74,6 +76,16 @@ impl Gpio {
         MUBit::new(
             Bit::new(Register::new(self.base + 0x10), self.bit),
             Bit::new(Register::new(self.base + 0x14), self.bit),
+        )
+    }
+
+    pub fn alternate_function(&self) -> (Bit, Bit, Bit, Bit) {
+        let a = if self.bit < 8 { 0x20 } else { 0x24 };
+        (
+            Bit::new(Register::new(self.base + a), self.bit * 4 + 3),
+            Bit::new(Register::new(self.base + a), self.bit * 4 + 2),
+            Bit::new(Register::new(self.base + a), self.bit * 4 + 1),
+            Bit::new(Register::new(self.base + a), self.bit * 4),
         )
     }
 }

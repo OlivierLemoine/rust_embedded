@@ -10,22 +10,25 @@
             "request": "launch",
             "miDebuggerPath": "/home/olivier/gcc-arm-none-eabi-8-2018-q4-major/bin/arm-none-eabi-gdb",
             "program": "${workspaceRoot}/main.elf",
-            "avoidWindowsConsoleRedirection": true,
-            "serverLaunchTimeout": 1000,
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
             "externalConsole": false,
+            // "debugServerPath": "/usr/bin/openocd",
+            // "debugServerArgs": "-f interface/stlink-v2-1.cfg -f target/stm32f4x.cfg",
             "MIMode": "gdb",
             "targetArchitecture": "arm",
             "preLaunchTask": "make",
             "setupCommands": [
                 {
+                    "text": "-enable-pretty-printing"
+                },
+                {
                     "text": "file ~/Downloads/rust_embedded/main.elf"
                 },
                 {
-                    "text": "target extended-remote :4242"
+                    "text": "target extended-remote :3333"
                 },
                 {
                     "text": "load"
@@ -33,7 +36,11 @@
                 {
                     "text": "b main"
                 }
-            ]
+            ],
+            "internalConsoleOptions": "neverOpen",
+            "logging": {
+                "engineLogging": true,
+            }
         }
     ]
 }

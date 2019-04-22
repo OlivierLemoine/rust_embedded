@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use core::ptr::{read_volatile, write_volatile};
 
 pub struct Register {

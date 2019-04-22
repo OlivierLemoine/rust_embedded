@@ -3,6 +3,7 @@
 use super::register::{Bit, Register, Register16, Register8};
 
 pub type UsartAddr = u32;
+pub const USART1: UsartAddr = 0x4001_1000;
 pub const USART2: UsartAddr = 0x4000_4400;
 pub const USART3: UsartAddr = 0x4000_4800;
 pub const USART4: UsartAddr = 0x4000_4C00;
@@ -18,14 +19,15 @@ impl Usart {
     }
 
     pub fn enabled(&self) -> Bit {
-        let bit = match self.base {
-            0x4000_4400 => 17,
-            0x4000_4800 => 18,
-            0x4000_4C00 => 19,
-            0x4000_5000 => 20,
-            _ => 0,
+        let (bit, a) = match self.base {
+            0x4001_1000 => (4, 0x44),
+            0x4000_4400 => (17, 0x40),
+            0x4000_4800 => (18, 0x40),
+            0x4000_4C00 => (19, 0x40),
+            0x4000_5000 => (20, 0x40),
+            _ => (17, 0x40),
         };
-        Bit::new(Register::new(0x4002_3800 + 0x40), bit)
+        Bit::new(Register::new(0x4002_3800 + a), bit)
     }
 
     pub fn transmit_data_register_empty(&self) -> Bit {
@@ -48,8 +50,16 @@ impl Usart {
         Register16::new(self.base + 0x08)
     }
 
+    pub fn oversampling_8_not_16(&self) -> Bit {
+        Bit::new(Register::new(self.base + 0x0C), 15)
+    }
+
     pub fn usart_enabled(&self) -> Bit {
         Bit::new(Register::new(self.base + 0x0C), 13)
+    }
+
+    pub fn word_length_9_not_8(&self) -> Bit {
+        Bit::new(Register::new(self.base + 0x0C), 12)
     }
 
     pub fn parity_control_enabled(&self) -> Bit {

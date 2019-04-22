@@ -10,7 +10,21 @@
             "group": {
                 "kind": "build",
                 "isDefault": true
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "silent",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": true
             }
+        },
+        {
+            "label": "openocd",
+            "type": "shell",
+            "command": "openocd -f interface/stlink-v2-1.cfg -f target/stm32f4x.cfg",
+            "problemMatcher": []
         }
     ]
 }

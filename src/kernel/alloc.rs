@@ -1,20 +1,8 @@
-#[macro_export]
-macro_rules! free {
-    ( $( $x:expr ),* ) => {
-        {
-            let mut temp_vec = Vec::new();
-            $(
-                temp_vec.push($x);
-            )*
-            temp_vec
-        }
-    };
-}
+// extern "C" {
+//     static _esystem_ram: u32;
+// }
 
-
-extern "C" {
-    static _esystem_ram: u32;
-}
+const _esystem_ram: u32 = 0x2001_FC00;
 
 pub fn alloc_init() {
     let pos = unsafe { _esystem_ram } as *mut u8;
