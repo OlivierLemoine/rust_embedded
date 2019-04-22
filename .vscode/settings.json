@@ -2,5 +2,5 @@
     "rust.all_targets": false,
     "rust.target": "thumbv7em-none-eabihf",
     "rust.build_on_save": true,
-    "rust.clippy_preference": "on",
+    // "rust.clippy_preference": "on",
 }

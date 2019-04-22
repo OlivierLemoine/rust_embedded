@@ -68,37 +68,39 @@ pub unsafe extern "C" fn main() -> ! {
     // led.enabled().set(true);
     // led.mode().1.set(true);
     // led.value().set(true);
-    
-    // let rx = gpio::Gpio::new(gpio::GPIO_A, 3).unwrap();
 
-    // rx.enabled().set(true);
-    // rx.mode().0.set(true);
-    // rx.mode().1.set(false);
-    // rx.speed().0.set(true);
-    // rx.speed().1.set(true);
-    // rx.pull_up_pull_down().0.set(false);
-    // rx.pull_up_pull_down().1.set(false);
-    // rx.open_drain_not_push_pull().set(false);
-    // let (mut b1, mut b2, mut b3, mut b4) = rx.alternate_function();
-    // b1.set(true);
-    // b2.set(false);
-    // b3.set(false);
-    // b4.set(false);
+    let temp = gpio::Gpio::new(gpio::raw::GPIO_A, 0);
 
-    let tx = gpio::Gpio::new(gpio::GPIO_A, 2).unwrap();
+    let rx = gpio::raw::Gpio::new(gpio::raw::GPIO_A, 3).unwrap();
+
+    rx.enabled().set(true);
+    rx.mode().0.set(true);
+    rx.mode().1.set(false);
+    rx.speed().0.set(false);
+    rx.speed().1.set(false);
+    rx.pull_up_pull_down().0.set(false);
+    rx.pull_up_pull_down().1.set(false);
+    rx.open_drain_not_push_pull().set(false);
+    let (mut b1_1, mut b1_2, mut b1_3, mut b1_4) = rx.alternate_function();
+    b1_1.set(false);
+    b1_2.set(true);
+    b1_3.set(true);
+    b1_4.set(true);
+
+    let tx = gpio::raw::Gpio::new(gpio::raw::GPIO_A, 2).unwrap();
     tx.enabled().set(true);
     tx.mode().0.set(true);
     tx.mode().1.set(false);
-    tx.speed().0.set(true);
-    tx.speed().1.set(true);
+    tx.speed().0.set(false);
+    tx.speed().1.set(false);
     tx.pull_up_pull_down().0.set(false);
     tx.pull_up_pull_down().1.set(false);
     tx.open_drain_not_push_pull().set(false);
-    let (mut b1, mut b2, mut b3, mut b4) = tx.alternate_function();
-    b1.set(true);
-    b2.set(false);
-    b3.set(false);
-    b4.set(false);
+    let (mut b2_1, mut b2_2, mut b2_3, mut b2_4) = tx.alternate_function();
+    b2_1.set(false);
+    b2_2.set(true);
+    b2_3.set(true);
+    b2_4.set(true);
 
 
     let serial = usart::Usart::new(usart::USART2);

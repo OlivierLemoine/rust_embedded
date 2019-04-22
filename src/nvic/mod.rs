@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use super::register::{Bit, Register};
 
 // ISER = 0xE000_E100

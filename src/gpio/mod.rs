@@ -1,91 +1,172 @@
 #![allow(dead_code)]
 
-use super::register::{Bit, MUBit, Register};
+pub mod raw;
 
-// MODER = base + 0x00
-// IDR = base + 0x10
-// ODR = base + 0x14
-
-pub type GpioAddr = u32;
-pub const GPIO_A: GpioAddr = 0x4002_0000;
-pub const GPIO_B: GpioAddr = 0x4002_0400;
-pub const GPIO_C: GpioAddr = 0x4002_0800;
-pub const GPIO_D: GpioAddr = 0x4002_0C00;
-pub const GPIO_E: GpioAddr = 0x4002_1000;
-pub const GPIO_F: GpioAddr = 0x4002_1400;
-pub const GPIO_G: GpioAddr = 0x4002_1800;
-pub const GPIO_H: GpioAddr = 0x4002_1C00;
-// pub const GPIO_I: GpioAddr = 0x4002_2000;
-// pub const GPIO_J: GpioAddr = 0x4002_2400;
-// pub const GPIO_K: GpioAddr = 0x4002_2800;
-
-pub struct Gpio {
-    base: GpioAddr,
-    bit: u32,
+pub mod alternate_function {
+    pub const UASART: u8 = 8;
 }
 
-impl Gpio {
-    pub fn new(periph: GpioAddr, bit: u32) -> Result<Gpio, bool> {
-        if bit > 15 {
-            return Err(false);
+pub mod states {
+    pub struct Disable;
+    pub struct Enable;
+}
+
+pub mod mode {
+    pub struct Input;
+    pub struct Output;
+    pub struct Alternate;
+}
+
+pub struct Undefined;
+
+pub struct Gpio<STATE, MODE> {
+    base: raw::Gpio,
+    state: STATE,
+    mode: MODE,
+}
+
+impl Gpio<Undefined, Undefined> {
+    pub fn new(periph: raw::GpioAddr, bit: u32) -> Gpio<states::Disable, Undefined> {
+        Gpio {
+            base: raw::Gpio::new(periph, bit).unwrap(),
+            state: states::Disable {},
+            mode: Undefined,
         }
-        Ok(Gpio { base: periph, bit })
     }
 
-    pub fn enabled(&self) -> Bit {
-        let bit = match self.base {
-            0x4002_0000 => 0,
-            0x4002_0400 => 1,
-            0x4002_0800 => 2,
-            0x4002_0C00 => 3,
-            0x4002_1000 => 4,
-            0x4002_1400 => 5,
-            0x4002_1800 => 6,
-            0x4002_1C00 => 7,
-            _ => 0,
-        };
-        Bit::new(Register::new(0x4002_3800 + 0x30), bit)
+    pub fn new_user_led() -> Gpio<states::Enable, mode::Output> {
+        Gpio::new(raw::GPIO_A, 5).set_active().into_output()
+    }
+}
+
+impl Gpio<states::Disable, Undefined> {
+    pub fn set_active(self) -> Gpio<states::Enable, Undefined> {
+        self.base.enabled().set(true);
+        Gpio {
+            base: self.base,
+            state: states::Enable,
+            mode: Undefined,
+        }
+    }
+}
+
+impl Gpio<states::Enable, Undefined> {
+    pub fn into_input(self) -> Gpio<states::Enable, mode::Input> {
+        let (mut b1, mut b2) = self.base.mode();
+        b1.set(false);
+        b2.set(false);
+        Gpio {
+            base: self.base,
+            state: states::Enable,
+            mode: mode::Input,
+        }
     }
 
-    pub fn mode(&self) -> (Bit, Bit) {
-        (
-            Bit::new(Register::new(self.base), self.bit * 2 + 1),
-            Bit::new(Register::new(self.base), self.bit * 2),
-        )
+    pub fn into_output(self) -> Gpio<states::Enable, mode::Output> {
+        let (mut b1, mut b2) = self.base.mode();
+        b1.set(false);
+        b2.set(true);
+        Gpio {
+            base: self.base,
+            state: states::Enable,
+            mode: mode::Output,
+        }
     }
 
-    pub fn open_drain_not_push_pull(&self) -> Bit {
-        Bit::new(Register::new(self.base + 0x04), self.bit)
+    pub fn into_alternate(self) -> Gpio<states::Enable, mode::Alternate> {
+        let (mut b1, mut b2) = self.base.mode();
+        b1.set(true);
+        b2.set(false);
+        Gpio {
+            base: self.base,
+            state: states::Enable,
+            mode: mode::Alternate,
+        }
+    }
+}
+
+impl<MODE> Gpio<states::Enable, MODE> {
+    pub fn into_push_pull(self) -> Gpio<states::Enable, MODE> {
+        self.base.open_drain_not_push_pull().set(false);
+        self
     }
 
-    pub fn speed(&self) -> (Bit, Bit) {
-        (
-            Bit::new(Register::new(self.base + 0x08), self.bit * 2 + 1),
-            Bit::new(Register::new(self.base + 0x08), self.bit * 2),
-        )
+    pub fn into_open_drain(self) -> Gpio<states::Enable, MODE> {
+        self.base.open_drain_not_push_pull().set(true);
+        self
     }
 
-    pub fn pull_up_pull_down(&self) -> (Bit, Bit) {
-        (
-            Bit::new(Register::new(self.base + 0x0C), self.bit * 2 + 1),
-            Bit::new(Register::new(self.base + 0x0C), self.bit * 2),
-        )
+    pub fn into_low_speed(self) -> Gpio<states::Enable, MODE> {
+        let (mut b1, mut b2) = self.base.speed();
+        b1.set(false);
+        b2.set(false);
+        self
     }
 
-    pub fn value(&self) -> MUBit {
-        MUBit::new(
-            Bit::new(Register::new(self.base + 0x10), self.bit),
-            Bit::new(Register::new(self.base + 0x14), self.bit),
-        )
+    pub fn into_medium_speed(self) -> Gpio<states::Enable, MODE> {
+        let (mut b1, mut b2) = self.base.speed();
+        b1.set(false);
+        b2.set(true);
+        self
     }
 
-    pub fn alternate_function(&self) -> (Bit, Bit, Bit, Bit) {
-        let a = if self.bit < 8 { 0x20 } else { 0x24 };
-        (
-            Bit::new(Register::new(self.base + a), self.bit * 4 + 3),
-            Bit::new(Register::new(self.base + a), self.bit * 4 + 2),
-            Bit::new(Register::new(self.base + a), self.bit * 4 + 1),
-            Bit::new(Register::new(self.base + a), self.bit * 4),
-        )
+    pub fn into_fast_speed(self) -> Gpio<states::Enable, MODE> {
+        let (mut b1, mut b2) = self.base.speed();
+        b1.set(true);
+        b2.set(false);
+        self
+    }
+
+    pub fn into_high_speed(self) -> Gpio<states::Enable, MODE> {
+        let (mut b1, mut b2) = self.base.speed();
+        b1.set(true);
+        b2.set(true);
+        self
+    }
+
+    pub fn into_no_pull(self) -> Gpio<states::Enable, MODE> {
+        let (mut b1, mut b2) = self.base.pull_up_pull_down();
+        b1.set(false);
+        b2.set(false);
+        self
+    }
+
+    pub fn into_pull_up(self) -> Gpio<states::Enable, MODE> {
+        let (mut b1, mut b2) = self.base.pull_up_pull_down();
+        b1.set(false);
+        b2.set(true);
+        self
+    }
+
+    pub fn into_pull_down(self) -> Gpio<states::Enable, MODE> {
+        let (mut b1, mut b2) = self.base.pull_up_pull_down();
+        b1.set(true);
+        b2.set(false);
+        self
+    }
+
+}
+
+impl Gpio<states::Enable, mode::Alternate> {
+    pub fn alternate_function(self, function: u8) -> Gpio<states::Enable, mode::Alternate> {
+        let (mut b1, mut b2, mut b3, mut b4) = self.base.alternate_function();
+        b1.set((function & 0x08) == 0x08);
+        b2.set((function & 0x04) == 0x04);
+        b3.set((function & 0x02) == 0x02);
+        b4.set((function & 0x01) == 0x01);
+        self
+    }
+}
+
+impl Gpio<states::Enable, mode::Input> {
+    pub fn get(&self) -> bool {
+        self.base.value().get()
+    }
+}
+
+impl Gpio<states::Enable, mode::Output> {
+    pub fn set(self, value: bool) -> Gpio<states::Enable, mode::Output> {
+        self.base.value().set(value);
+        self
     }
 }

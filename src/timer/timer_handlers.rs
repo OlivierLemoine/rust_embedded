@@ -2,7 +2,7 @@
 
 #[no_mangle]
 pub unsafe extern "C" fn TIM2_IRQHandler() {
-    let mut b = super::super::gpio::Gpio::new(super::super::gpio::GPIO_A, 5)
+    let mut b = super::super::gpio::raw::Gpio::new(super::super::gpio::raw::GPIO_A, 5)
         .unwrap()
         .value();
     if b.get() {
