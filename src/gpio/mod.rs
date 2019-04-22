@@ -37,6 +37,28 @@ impl Gpio<Undefined, Undefined> {
     pub fn new_user_led() -> Gpio<states::Enable, mode::Output> {
         Gpio::new(raw::GPIO_A, 5).set_active().into_output()
     }
+
+    pub fn new_usb_serial_pins() -> (
+        Gpio<states::Enable, mode::Alternate>,
+        Gpio<states::Enable, mode::Alternate>,
+    ) {
+        (
+            Gpio::new(raw::GPIO_A, 3)
+                .set_active()
+                .into_alternate()
+                .alternate_function(alternate_function::UASART)
+                .into_high_speed()
+                .into_no_pull()
+                .into_push_pull(),
+            Gpio::new(raw::GPIO_A, 2)
+                .set_active()
+                .into_alternate()
+                .alternate_function(alternate_function::UASART)
+                .into_high_speed()
+                .into_no_pull()
+                .into_push_pull(),
+        )
+    }
 }
 
 impl Gpio<states::Disable, Undefined> {
