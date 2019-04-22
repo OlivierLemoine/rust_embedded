@@ -60,29 +60,31 @@ pub unsafe extern "C" fn main() -> ! {
 
     // nvic::NVIC::new().tim2_set_enabled().set(true);
 
-    // timer_config();
+    timer_config();
 
     // asm!("swi 0");
 
-    let (rx, tx) = gpio::Gpio::new_usb_serial_pins();
+    // let (rx, tx) = gpio::Gpio::new_usb_serial_pins();
 
-    let serial = usart::Usart::new(usart::USART2);
-    serial.enabled().set(true);
-    serial.transmiter_enabled().set(true);
-    serial.receiver_enabled().set(true);
-    serial.oversampling_8_not_16().set(false);
-    serial.parity_control_enabled().set(false);
-    serial.word_length_9_not_8().set(false);
-    serial.stop_bit().0.set(false);
-    serial.stop_bit().1.set(false);
+    let old_serial = usart::raw::Usart::new(usart::raw::USART2);
+    old_serial.enabled().set(true);
+    old_serial.transmiter_enabled().set(true);
+    old_serial.receiver_enabled().set(true);
+    old_serial.oversampling_8_not_16().set(false);
+    old_serial.parity_control_enabled().set(false);
+    old_serial.word_length_9_not_8().set(false);
+    old_serial.stop_bit().0.set(false);
+    old_serial.stop_bit().1.set(false);
     // serial.baud_rate().write(0x341);
-    serial.baud_rate().write(0x683);
-    serial.usart_enabled().set(true);
+    old_serial.baud_rate().write(0x683);
+    old_serial.usart_enabled().set(true);
 
-    serial.data().write(b'U');
+    old_serial.data().write(b'U');
+
+    let _serial = usart::Usart::new_usb_serial();
 
     loop {
-        while !serial.transmission_complete().get() {}
-        serial.data().write(b'U');
+        while !old_serial.transmission_complete().get() {}
+        old_serial.data().write(b'U');
     }
 }

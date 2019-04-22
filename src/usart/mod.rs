@@ -1,106 +1,197 @@
 #![allow(dead_code)]
 
-use super::register::{Bit, Register, Register16, Register8};
+pub mod raw;
 
-pub type UsartAddr = u32;
-pub const USART1: UsartAddr = 0x4001_1000;
-pub const USART2: UsartAddr = 0x4000_4400;
-pub const USART3: UsartAddr = 0x4000_4800;
-pub const USART4: UsartAddr = 0x4000_4C00;
-pub const USART5: UsartAddr = 0x4000_5000;
+use super::gpio;
 
-pub struct Usart {
-    base: UsartAddr,
+pub mod states {
+    pub struct Disable;
+    pub struct Enable;
 }
 
-impl Usart {
-    pub fn new(periph: UsartAddr) -> Usart {
-        Usart { base: periph }
+pub mod mode {
+    pub struct Rx;
+    pub struct Tx;
+    pub struct RxTx;
+}
+
+pub mod usart_state {
+    pub struct Ready;
+    pub struct Waiting;
+}
+
+pub struct Undefined;
+
+pub struct Usart<STATE, MODE, USARTSTATE> {
+    base: raw::Usart,
+    state: STATE,
+    mode: MODE,
+    usart_state: USARTSTATE,
+}
+
+impl Usart<Undefined, Undefined, Undefined> {
+    pub fn new(periph: raw::UsartAddr) -> Usart<states::Disable, Undefined, Undefined> {
+        Usart {
+            base: raw::Usart::new(periph),
+            state: states::Disable,
+            mode: Undefined,
+            usart_state: Undefined,
+        }
     }
 
-    pub fn enabled(&self) -> Bit {
-        let (bit, a) = match self.base {
-            0x4001_1000 => (4, 0x44),
-            0x4000_4400 => (17, 0x40),
-            0x4000_4800 => (18, 0x40),
-            0x4000_4C00 => (19, 0x40),
-            0x4000_5000 => (20, 0x40),
-            _ => (17, 0x40),
+    pub fn new_usb_serial() -> Usart<states::Enable, mode::RxTx, usart_state::Ready> {
+        gpio::Gpio::new_usb_serial_pins();
+        Usart::new(raw::USART2)
+            .set_active()
+            .into_rxtx()
+            .into_1_stop_bit()
+            .into_no_parity()
+            .set_baud_rate(9600)
+            .ready_usart()
+    }
+}
+
+impl Usart<states::Disable, Undefined, Undefined> {
+    pub fn set_active(self) -> Usart<states::Enable, Undefined, usart_state::Waiting> {
+        self.base.enabled();
+        Usart {
+            base: self.base,
+            state: states::Enable,
+            mode: Undefined,
+            usart_state: usart_state::Waiting,
+        }
+    }
+}
+
+impl<MODE> Usart<states::Enable, MODE, usart_state::Waiting> {
+    pub fn ready_usart(self) -> Usart<states::Enable, MODE, usart_state::Ready> {
+        self.base.usart_enabled();
+        Usart {
+            base: self.base,
+            state: states::Enable,
+            mode: self.mode,
+            usart_state: usart_state::Ready,
+        }
+    }
+
+    pub fn into_no_parity(self) -> Usart<states::Enable, MODE, usart_state::Waiting> {
+        self.base.parity_control_enabled().set(false);
+        self
+    }
+
+    pub fn into_even_parity(self) -> Usart<states::Enable, MODE, usart_state::Waiting> {
+        self.base.parity_control_enabled().set(true);
+        self.base.parity_odd_not_even().set(false);
+        self
+    }
+
+    pub fn into_odd_parity(self) -> Usart<states::Enable, MODE, usart_state::Waiting> {
+        self.base.parity_control_enabled().set(true);
+        self.base.parity_odd_not_even().set(true);
+        self
+    }
+
+    pub fn into_1_stop_bit(self) -> Usart<states::Enable, MODE, usart_state::Waiting> {
+        let (mut b1, mut b2) = self.base.stop_bit();
+        b1.set(false);
+        b2.set(false);
+        self
+    }
+
+    pub fn into_0_5_stop_bit(self) -> Usart<states::Enable, MODE, usart_state::Waiting> {
+        let (mut b1, mut b2) = self.base.stop_bit();
+        b1.set(false);
+        b2.set(true);
+        self
+    }
+
+    pub fn into_2_stop_bit(self) -> Usart<states::Enable, MODE, usart_state::Waiting> {
+        let (mut b1, mut b2) = self.base.stop_bit();
+        b1.set(true);
+        b2.set(false);
+        self
+    }
+
+    pub fn into_1_5_stop_bit(self) -> Usart<states::Enable, MODE, usart_state::Waiting> {
+        let (mut b1, mut b2) = self.base.stop_bit();
+        b1.set(true);
+        b2.set(true);
+        self
+    }
+
+    pub fn set_baud_rate(self, baud: u32) -> Usart<states::Enable, MODE, usart_state::Waiting> {
+        let v = match baud {
+            9600 => 0x683,
+            _ => 0x0,
         };
-        Bit::new(Register::new(0x4002_3800 + a), bit)
+        self.base.baud_rate().write(v);
+        self
+    }
+}
+
+impl Usart<states::Enable, Undefined, usart_state::Waiting> {
+    pub fn into_rxtx(self) -> Usart<states::Enable, mode::RxTx, usart_state::Waiting> {
+        self.base.transmiter_enabled().set(true);
+        self.base.receiver_enabled().set(true);
+        Usart {
+            base: self.base,
+            state: states::Enable,
+            mode: mode::RxTx,
+            usart_state: usart_state::Waiting,
+        }
     }
 
-    pub fn transmit_data_register_empty(&self) -> Bit {
-        Bit::new(Register::new(self.base), 7)
+    pub fn into_rx(self) -> Usart<states::Enable, mode::Rx, usart_state::Waiting> {
+        self.base.transmiter_enabled().set(false);
+        self.base.receiver_enabled().set(true);
+        Usart {
+            base: self.base,
+            state: states::Enable,
+            mode: mode::Rx,
+            usart_state: usart_state::Waiting,
+        }
     }
 
-    pub fn transmission_complete(&self) -> Bit {
-        Bit::new(Register::new(self.base), 6)
+    pub fn into_tx(self) -> Usart<states::Enable, mode::Tx, usart_state::Waiting> {
+        self.base.transmiter_enabled().set(true);
+        self.base.receiver_enabled().set(false);
+        Usart {
+            base: self.base,
+            state: states::Enable,
+            mode: mode::Tx,
+            usart_state: usart_state::Waiting,
+        }
+    }
+}
+
+impl Usart<states::Enable, mode::Tx, usart_state::Ready> {
+    pub fn put_char(self, c: u8) -> Usart<states::Enable, mode::Tx, usart_state::Ready> {
+        self.base.data().write(c);
+        while !self.base.transmit_data_register_empty().get() {}
+        self
     }
 
-    pub fn read_data_register_not_empty(&self) -> Bit {
-        Bit::new(Register::new(self.base), 5)
+    pub fn write(mut self, s: &str) -> Usart<states::Enable, mode::Tx, usart_state::Ready> {
+        // let tmp = &self;
+        for c in s.bytes() {
+            self = self.put_char(c);
+        }
+        self
+    }
+}
+
+impl Usart<states::Enable, mode::RxTx, usart_state::Ready> {
+    pub fn put_char(self, c: u8) -> Usart<states::Enable, mode::RxTx, usart_state::Ready> {
+        self.base.data().write(c);
+        while !self.base.transmit_data_register_empty().get() {}
+        self
     }
 
-    pub fn data(&self) -> Register8 {
-        Register8::new(self.base + 0x04)
-    }
-
-    pub fn baud_rate(&self) -> Register16 {
-        Register16::new(self.base + 0x08)
-    }
-
-    pub fn oversampling_8_not_16(&self) -> Bit {
-        Bit::new(Register::new(self.base + 0x0C), 15)
-    }
-
-    pub fn usart_enabled(&self) -> Bit {
-        Bit::new(Register::new(self.base + 0x0C), 13)
-    }
-
-    pub fn word_length_9_not_8(&self) -> Bit {
-        Bit::new(Register::new(self.base + 0x0C), 12)
-    }
-
-    pub fn parity_control_enabled(&self) -> Bit {
-        Bit::new(Register::new(self.base + 0x0C), 10)
-    }
-
-    pub fn parity_odd_not_even(&self) -> Bit {
-        Bit::new(Register::new(self.base + 0x0C), 9)
-    }
-
-    pub fn transmit_data_register_empty_interrupt_enabled(&self) -> Bit {
-        Bit::new(Register::new(self.base + 0x0C), 7)
-    }
-
-    pub fn transmission_complete_interrupt_enabled(&self) -> Bit {
-        Bit::new(Register::new(self.base + 0x0C), 6)
-    }
-    pub fn read_data_register_not_empty_interrupt_enabled(&self) -> Bit {
-        Bit::new(Register::new(self.base + 0x0C), 5)
-    }
-
-    pub fn transmiter_enabled(&self) -> Bit {
-        Bit::new(Register::new(self.base + 0x0C), 3)
-    }
-
-    pub fn receiver_enabled(&self) -> Bit {
-        Bit::new(Register::new(self.base + 0x0C), 2)
-    }
-
-    pub fn send_break_caracter(&self) -> Bit {
-        Bit::new(Register::new(self.base + 0x0C), 0)
-    }
-
-    pub fn stop_bit(&self) -> (Bit, Bit) {
-        (
-            Bit::new(Register::new(self.base + 0x10), 13),
-            Bit::new(Register::new(self.base + 0x10), 12),
-        )
-    }
-
-    pub fn guard_time_and_prescaler(&self) -> Register16 {
-        Register16::new(self.base + 0x18)
+    pub fn write(mut self, s: &str) -> Usart<states::Enable, mode::RxTx, usart_state::Ready> {
+        // let tmp = &self;
+        for c in s.bytes() {
+            self = self.put_char(c);
+        }
+        self
     }
 }
