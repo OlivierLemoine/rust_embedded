@@ -1,7 +1,7 @@
 #![no_main]
 #![no_std]
 
-#![feature(asm)]
+// #![feature(asm)]
 
 // extern crate HAL;
 // use HAL::gpio;
@@ -21,21 +21,32 @@ mod panic_handler;
 mod kernel;
 
 fn timer_config() {
-    let timer = timer::Timer::new(timer::TIMER_2);
-    timer.enabled().set(true);
+    // let timer_old = timer::raw::Timer::new(timer::raw::TIMER_2);
+    // timer_old.enabled().set(true);
 
-    timer.auto_reload_register_enabled().set(false);
-    timer.auto_reload_register().write(0xFFFF);
+    // timer_old.auto_reload_register_enabled().set(false);
+    // timer_old.auto_reload_register().write(0xFFFF);
 
-    timer.prescaler().write(0xF);
+    // timer_old.prescaler().write(0xF);
 
-    timer.clock_division().1.set(true);
+    // timer_old.clock_division().1.set(true);
 
-    timer.update_interrupt_enabled().set(true);
+    // timer_old.update_interrupt_enabled().set(true);
 
-    timer.update_generator().set(true);
+    // timer_old.update_generator().set(true);
 
-    timer.count().set(true);
+    // timer_old.count().set(true);
+
+    timer::Timer::new(timer::raw::TIMER_2)
+        .enable()
+        .enable_auto_reload_register()
+        .set_auto_reload_register(0xFFFF)
+        .set_prescaler(0xF)
+        .count_upward()
+        .into_clock_div_by_4()
+        .reset()
+        .enable_update_interrupt()
+        .start_count();
 }
 
 #[no_mangle]

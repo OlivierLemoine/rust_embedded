@@ -4,7 +4,7 @@ LD_SCRIPT = ./boot/stm32f446.ld
 MCU_SPEC  = cortex-m4
 DEBUG = -g
 # Toolchain definitions (ARM bare metal defaults)
-TOOLCHAIN_PATH = /home/olivier/gcc-arm-none-eabi-8-2018-q4-major/bin/
+# TOOLCHAIN_PATH = /home/olivier/gcc-arm-none-eabi-8-2018-q4-major/bin/
 CC = $(TOOLCHAIN_PATH)arm-none-eabi-gcc
 AS = $(TOOLCHAIN_PATH)arm-none-eabi-as
 LD = $(TOOLCHAIN_PATH)arm-none-eabi-ld

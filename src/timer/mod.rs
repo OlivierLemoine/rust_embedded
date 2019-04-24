@@ -1,89 +1,135 @@
 #![allow(dead_code)]
 
-use super::register::{Bit, Register, Register16};
-
+pub mod raw;
 mod timer_handlers;
 
-pub type TimerAddr = u32;
-pub const TIMER_2: TimerAddr = 0x4000_0000;
-pub const TIMER_3: TimerAddr = 0x4000_0400;
-pub const TIMER_4: TimerAddr = 0x4000_0800;
-pub const TIMER_5: TimerAddr = 0x4000_0C00;
-pub const TIMER_6: TimerAddr = 0x4000_1000;
-pub const TIMER_7: TimerAddr = 0x4000_1400;
-
-// CR1 = 0x00
-// DIER = 0x0C
-// EGR = 0x14
-// CNT = 0x24
-// PSC = 0x28
-// ARR = 0x2C
-
-pub struct Timer {
-    base: u32,
+pub mod counter {
+    pub struct On;
+    pub struct Off;
 }
 
-impl Timer {
-    pub fn new(periph: TimerAddr) -> Timer {
-        Timer { base: periph }
+pub mod states {
+    pub struct Disable;
+    pub struct Enable;
+}
+
+pub struct Undefined;
+
+pub struct Timer<STATE, COUNTER> {
+    base: raw::Timer,
+
+    state: STATE,
+    counter: COUNTER,
+}
+
+impl Timer<states::Disable, Undefined> {
+    pub fn new(periph: raw::TimerAddr) -> Timer<states::Disable, Undefined> {
+        Timer {
+            base: raw::Timer::new(periph),
+
+            state: states::Disable,
+            counter: Undefined,
+        }
     }
 
-    pub fn enabled(&self) -> Bit {
-        Bit::new(Register::new(0x4002_3800 + 0x40), 0)
+    pub fn disable_update_interrupt_flag(periph: raw::TimerAddr) {
+        raw::Timer::new(periph).update_interrupt_flag().set(false);
+    }
+}
+
+impl Timer<states::Disable, Undefined> {
+    pub fn enable(self) -> Timer<states::Enable, counter::Off> {
+        self.base.enabled();
+        Timer {
+            base: self.base,
+
+            state: states::Enable,
+            counter: counter::Off,
+        }
+    }
+}
+
+impl Timer<states::Enable, counter::Off> {
+    pub fn start_count(self) -> Timer<states::Enable, counter::On> {
+        self.base.count().set(true);
+        Timer {
+            base: self.base,
+
+            state: states::Enable,
+            counter: counter::On,
+        }
     }
 
-    pub fn auto_reload_register_enabled(&self) -> Bit {
-        Bit::new(Register::new(self.base), 7)
+    pub fn into_one_pulse_mode(self) -> Timer<states::Enable, counter::Off> {
+        self.base.one_pulse_mode().set(true);
+        self
     }
 
-    pub fn count_direction(&self) -> Bit {
-        Bit::new(Register::new(self.base), 4)
+    pub fn into_multiple_pulse_mode(self) -> Timer<states::Enable, counter::Off> {
+        self.base.one_pulse_mode().set(false);
+        self
     }
 
-    pub fn one_pulse_mode(&self) -> Bit {
-        Bit::new(Register::new(self.base), 3)
+    pub fn count_upward(self) -> Timer<states::Enable, counter::Off> {
+        self.base.count_direction().set(false);
+        self
     }
 
-    pub fn update_disabled(&self) -> Bit {
-        Bit::new(Register::new(self.base), 1)
+    pub fn count_downward(self) -> Timer<states::Enable, counter::Off> {
+        self.base.count_direction().set(true);
+        self
     }
 
-    pub fn count(&self) -> Bit {
-        Bit::new(Register::new(self.base), 0)
+    pub fn enable_auto_reload_register(self) -> Timer<states::Enable, counter::Off> {
+        self.base.auto_reload_register_enabled().set(true);
+        self
     }
 
-    pub fn clock_division(&self) -> (Bit, Bit) {
-        (
-            Bit::new(Register::new(self.base), 9),
-            Bit::new(Register::new(self.base), 8),
-        )
+    pub fn disable_auto_reload_register(self) -> Timer<states::Enable, counter::Off> {
+        self.base.auto_reload_register_enabled().set(false);
+        self
     }
 
-    pub fn trigger_interrupt_enabled(&self) -> Bit {
-        Bit::new(Register::new(self.base + 0x0C), 6)
+    pub fn into_clock_div_by_1(self) -> Timer<states::Enable, counter::Off> {
+        let (mut b1, mut b2) = self.base.clock_division();
+        b1.set(false);
+        b2.set(false);
+        self
     }
 
-    pub fn update_interrupt_enabled(&self) -> Bit {
-        Bit::new(Register::new(self.base + 0x0C), 0)
+    pub fn into_clock_div_by_2(self) -> Timer<states::Enable, counter::Off> {
+        let (mut b1, mut b2) = self.base.clock_division();
+        b1.set(false);
+        b2.set(true);
+        self
     }
 
-    pub fn update_interrupt_flag(&self) -> Bit {
-        Bit::new(Register::new(self.base + 0x10), 0)
+    pub fn into_clock_div_by_4(self) -> Timer<states::Enable, counter::Off> {
+        let (mut b1, mut b2) = self.base.clock_division();
+        b1.set(true);
+        b2.set(false);
+        self
     }
 
-    pub fn update_generator(&self) -> Bit {
-        Bit::new(Register::new(self.base + 0x14), 0)
+    pub fn enable_update_interrupt(self) -> Timer<states::Enable, counter::Off> {
+        self.base.update_interrupt_enabled().set(true);
+        self
+    }
+}
+
+impl<COUNTER> Timer<states::Enable, COUNTER> {
+    pub fn set_prescaler(self, p: u16) -> Timer<states::Enable, COUNTER> {
+        self.base.prescaler().write(p);
+        self
     }
 
-    pub fn counter(&self) -> Register16 {
-        Register16::new(self.base + 0x24)
+    pub fn set_auto_reload_register(self, a: u16) -> Timer<states::Enable, COUNTER> {
+        self.base.auto_reload_register().write(a);
+        self
     }
 
-    pub fn prescaler(&self) -> Register16 {
-        Register16::new(self.base + 0x28)
-    }
-
-    pub fn auto_reload_register(&self) -> Register16 {
-        Register16::new(self.base + 0x2C)
+    pub fn reset(self) -> Timer<states::Enable, COUNTER> {
+        self.base.update_generator().set(true);
+        self
     }
 }
