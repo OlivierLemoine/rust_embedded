@@ -1,11 +1,11 @@
-// extern "C" {
-//     static _esystem_ram: u32;
-// }
+extern "C" {
+    static _ssystem_ram: u32;
+}
 
-const _esystem_ram: u32 = 0x2001_FC00;
+// const _ssystem_ram: u32 = 0x2001_FC00;
 
 pub fn alloc_init() {
-    let pos = unsafe { _esystem_ram } as *mut u8;
+    let pos = unsafe { _ssystem_ram } as *mut u8;
     write_state(pos, 0x7FFF_FFFF);
 }
 
@@ -15,7 +15,7 @@ pub fn malloc(size: u32) -> Result<*mut u8, bool> {
     }
 
     let step = size + 4;
-    let mut pos = unsafe { _esystem_ram } as *mut u8;
+    let mut pos = unsafe { _ssystem_ram } as *mut u8;
     while !is_free(read_state(pos)) || step > (read_state(pos) & 0x7FFF_FFFF) {
         pos = ((pos as u32) - (read_state(pos) & 0x7FFF_FFFF)) as *mut u8;
     }
@@ -35,7 +35,7 @@ pub fn free(p: *mut u8) {
 
     // let pos2 = ((pos1 as u32) - (read_state(pos1) & 0x7FFF_FFFF)) as *mut u8;
 
-    let mut pos = unsafe { _esystem_ram } as *mut u8;
+    let mut pos = unsafe { _ssystem_ram } as *mut u8;
 
     let pos2 = ((p as u32) - 1) as *mut u8;
 

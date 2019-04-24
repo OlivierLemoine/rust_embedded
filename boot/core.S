@@ -57,5 +57,9 @@ reset_bss_loop:
     BCC  reset_bss
 
     // Branch to the 'main' method.
+    mov  lr, _exit
     B    main
 .size Reset_Handler, .-Reset_Handler
+
+_exit:
+    b   _exit
