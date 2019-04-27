@@ -3,7 +3,15 @@
 pub mod raw;
 
 pub mod alternate_function {
-    pub const UASART: u8 = 7;
+    pub const I2C: u8 = 4;
+    pub const SPI1: u8 = 4;
+    pub const SPI2: u8 = 5;
+    pub const SPI3: u8 = 6;
+    pub const USART1: u8 = 7;
+    pub const USART2: u8 = 7;
+    pub const USART3: u8 = 7;
+    pub const USART4: u8 = 8;
+    pub const USART5: u8 = 8;
 }
 
 pub mod states {
@@ -46,14 +54,14 @@ impl Gpio<Undefined, Undefined> {
             Gpio::new(raw::GPIO_A, 3)
                 .set_active()
                 .into_alternate()
-                .alternate_function(alternate_function::UASART)
+                .alternate_function(alternate_function::USART2)
                 .into_high_speed()
                 .into_no_pull()
                 .into_push_pull(),
             Gpio::new(raw::GPIO_A, 2)
                 .set_active()
                 .into_alternate()
-                .alternate_function(alternate_function::UASART)
+                .alternate_function(alternate_function::USART2)
                 .into_high_speed()
                 .into_no_pull()
                 .into_push_pull(),

@@ -147,6 +147,7 @@ impl<MODE> Usart<states::Enable, MODE, usart_state::Waiting> {
     pub fn set_baud_rate(self, baud: u32) -> Usart<states::Enable, MODE, usart_state::Waiting> {
         let v = match baud {
             9600 => 0x683,
+            57600 => 0x116,
             _ => 0x684,
         };
         self.base.baud_rate().write(v);
