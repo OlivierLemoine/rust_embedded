@@ -62,4 +62,4 @@ reset_bss_loop:
 .size Reset_Handler, .-Reset_Handler
 
 _exit:
-    b   _exit
+    B   _exit

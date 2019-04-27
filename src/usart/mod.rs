@@ -46,6 +46,7 @@ impl Usart<Undefined, Undefined, Undefined> {
             .into_rxtx()
             .into_1_stop_bit()
             .into_no_parity()
+            .into_8_bit_message()
             .set_baud_rate(9600)
             .ready_usart()
     }
@@ -53,7 +54,7 @@ impl Usart<Undefined, Undefined, Undefined> {
 
 impl Usart<states::Disable, Undefined, Undefined> {
     pub fn set_active(self) -> Usart<states::Enable, Undefined, usart_state::Waiting> {
-        self.base.enabled();
+        self.base.enabled().set(true);
         Usart {
             base: self.base,
             state: states::Enable,
@@ -65,7 +66,7 @@ impl Usart<states::Disable, Undefined, Undefined> {
 
 impl<MODE> Usart<states::Enable, MODE, usart_state::Waiting> {
     pub fn ready_usart(self) -> Usart<states::Enable, MODE, usart_state::Ready> {
-        self.base.usart_enabled();
+        self.base.usart_enabled().set(true);
         Usart {
             base: self.base,
             state: states::Enable,
@@ -122,9 +123,19 @@ impl<MODE> Usart<states::Enable, MODE, usart_state::Waiting> {
     pub fn set_baud_rate(self, baud: u32) -> Usart<states::Enable, MODE, usart_state::Waiting> {
         let v = match baud {
             9600 => 0x683,
-            _ => 0x0,
+            _ => 0x684,
         };
         self.base.baud_rate().write(v);
+        self
+    }
+
+    pub fn into_8_bit_message(self) -> Usart<states::Enable, MODE, usart_state::Waiting> {
+        self.base.word_length_9_not_8().set(false);
+        self
+    }
+
+    pub fn into_9_bit_message(self) -> Usart<states::Enable, MODE, usart_state::Waiting> {
+        self.base.word_length_9_not_8().set(true);
         self
     }
 }
@@ -183,7 +194,7 @@ impl Usart<states::Enable, mode::Tx, usart_state::Ready> {
 impl Usart<states::Enable, mode::RxTx, usart_state::Ready> {
     pub fn put_char(self, c: u8) -> Usart<states::Enable, mode::RxTx, usart_state::Ready> {
         self.base.data().write(c);
-        while !self.base.transmit_data_register_empty().get() {}
+        while !self.base.transmission_complete().get() {}
         self
     }
 

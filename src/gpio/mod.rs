@@ -3,7 +3,7 @@
 pub mod raw;
 
 pub mod alternate_function {
-    pub const UASART: u8 = 8;
+    pub const UASART: u8 = 7;
 }
 
 pub mod states {
