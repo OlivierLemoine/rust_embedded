@@ -27,7 +27,7 @@ fn timer_config() {
 #[no_mangle]
 pub unsafe extern "C" fn main() {
     rcc::Rcc::new().enable_hsi().sysclock_into_hsi();
-    let serial = usart::Usart::new_usb_serial();
+    let serial = usart::Usart::new_usb_serial(9600);
     println!("\n");
 
     timer_config();
@@ -55,9 +55,19 @@ pub unsafe extern "C" fn main() {
         .into_8_bit_message()
         .into_no_parity()
         .into_1_stop_bit()
-        .set_baud_rate(57600)
+        .set_baud_rate(115200)
         .ready_usart();
 
+    wifi.n_write("AT\r\n\r\n".as_bytes());
+
     loop {
+        if serial.has_received_char() {
+            let c = serial.read_char();
+            wifi.n_put_char(c);
+        }
+        if wifi.has_received_char() {
+            let c = wifi.read_char();
+            serial.n_put_char(c);
+        }
     }
 }

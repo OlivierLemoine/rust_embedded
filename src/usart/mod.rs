@@ -63,7 +63,7 @@ impl Usart<Undefined, Undefined, Undefined> {
         }
     }
 
-    pub fn new_usb_serial() -> Usart<states::Enable, mode::RxTx, usart_state::Ready> {
+    pub fn new_usb_serial(baud: u32) -> Usart<states::Enable, mode::RxTx, usart_state::Ready> {
         gpio::Gpio::new_usb_serial_pins();
         Usart::new(raw::USART2)
             .set_active()
@@ -71,7 +71,7 @@ impl Usart<Undefined, Undefined, Undefined> {
             .into_1_stop_bit()
             .into_no_parity()
             .into_8_bit_message()
-            .set_baud_rate(9600)
+            .set_baud_rate(baud)
             .ready_usart()
     }
 }
@@ -145,12 +145,16 @@ impl<MODE> Usart<states::Enable, MODE, usart_state::Waiting> {
     }
 
     pub fn set_baud_rate(self, baud: u32) -> Usart<states::Enable, MODE, usart_state::Waiting> {
-        let v = match baud {
-            9600 => 0x683,
-            57600 => 0x116,
-            _ => 0x684,
-        };
-        self.base.baud_rate().write(v);
+        // let v = match baud {
+        //     9600 => 0x683,
+        //     57600 => 0x116,
+        //     115200 => 0x8B,
+        //     _ => 0x684,
+        // };
+
+        let b = 16_000_000 / baud;
+
+        self.base.baud_rate().write(b as u16);
         self
     }
 
@@ -200,22 +204,6 @@ impl Usart<states::Enable, Undefined, usart_state::Waiting> {
     }
 }
 
-impl Usart<states::Enable, mode::Tx, usart_state::Ready> {
-    pub fn put_char(self, c: u8) -> Usart<states::Enable, mode::Tx, usart_state::Ready> {
-        self.base.data().write(c);
-        while !self.base.transmit_data_register_empty().get() {}
-        self
-    }
-
-    pub fn write(mut self, s: &str) -> Usart<states::Enable, mode::Tx, usart_state::Ready> {
-        // let tmp = &self;
-        for c in s.bytes() {
-            self = self.put_char(c);
-        }
-        self
-    }
-}
-
 impl Usart<states::Enable, mode::RxTx, usart_state::Ready> {
     pub fn put_char(self, c: u8) -> Usart<states::Enable, mode::RxTx, usart_state::Ready> {
         self.base.data().write(c);
@@ -223,11 +211,49 @@ impl Usart<states::Enable, mode::RxTx, usart_state::Ready> {
         self
     }
 
-    pub fn write(mut self, s: &str) -> Usart<states::Enable, mode::RxTx, usart_state::Ready> {
+    pub fn write(mut self, s: &[u8]) -> Usart<states::Enable, mode::RxTx, usart_state::Ready> {
         // let tmp = &self;
-        for c in s.bytes() {
-            self = self.put_char(c);
+        for c in s {
+            self = self.put_char(*c);
         }
         self
+    }
+
+    pub fn n_put_char(&self, c: u8) {
+        self.base.data().write(c);
+        while !self.base.transmit_data_register_empty().get() {}
+    }
+
+    pub fn n_write(&self, s: &[u8]) {
+        for c in s {
+            self.n_put_char(*c);
+        }
+    }
+
+    pub fn has_received_char(&self) -> bool {
+        self.base.read_data_register_not_empty().get()
+    }
+
+    pub fn read_char(&self) -> u8 {
+        while !self.base.read_data_register_not_empty().get() {}
+        self.base.data().read()
+    }
+
+    pub fn read(&self, res: &mut [u8]) {
+        let mut p = 0;
+        loop {
+            if p >= res.len() {
+                break;
+            }
+
+            let c = self.read_char();
+            res[p] = c;
+
+            if c == b'\n' || c == 0 || c == b'\r' {
+                break;
+            }
+
+            p += 1;
+        }
     }
 }
