@@ -6,6 +6,7 @@ mod nvic;
 mod rcc;
 mod register;
 mod timer;
+#[macro_use]
 mod usart;
 
 mod panic_handler;
@@ -28,9 +29,9 @@ fn timer_config() {
 #[no_mangle]
 pub unsafe extern "C" fn main() {
     rcc::Rcc::new().enable_hsi().sysclock_into_hsi();
-
+    usart::Usart::new_usb_serial();
+    
     timer_config();
 
-    let _serial = usart::Usart::new_usb_serial();
-    _serial.write("Ceci est un test\n");
+    println!("Test");
 }

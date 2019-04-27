@@ -1,5 +1,29 @@
 #![allow(dead_code)]
 
+#[macro_export]
+macro_rules! print {
+    ($input:expr) => {
+        let u = usart::raw::Usart::new(usart::raw::USART2);
+        for i in $input.bytes() {
+            u.data().write(i);
+            while !u.transmission_complete().get() {}
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! println {
+    ($input:expr) => {
+        let u = usart::raw::Usart::new(usart::raw::USART2);
+        for i in $input.bytes() {
+            u.data().write(i);
+            while !u.transmission_complete().get() {}
+        }
+        u.data().write(b'\n');
+        while !u.transmission_complete().get() {}
+    };
+}
+
 pub mod raw;
 
 use super::gpio;
