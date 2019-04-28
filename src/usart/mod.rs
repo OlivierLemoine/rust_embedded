@@ -24,6 +24,53 @@ macro_rules! println {
     };
 }
 
+#[macro_export]
+macro_rules! print_u32 {
+    ($input:expr) => {
+        let u = usart::raw::Usart::new(usart::raw::USART2);
+        let mut res = $input;
+
+        let mut res_arr: [u8; 10] = [0; 10];
+
+        for i in (0..10).rev() {
+            res_arr[i] = (res % 10) as u8;
+            res = res / 10;
+        }
+
+        for i in res_arr.iter() {
+            u.data().write(48 + i);
+            while !u.transmission_complete().get() {}
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! print_hexa {
+    ($input:expr) => {
+        let u = usart::raw::Usart::new(usart::raw::USART2);
+        let mut res = $input;
+
+        let mut res_arr: [u8; 8] = [0; 8];
+
+        for i in (0..8).rev() {
+            res_arr[i] = (res % 16) as u8;
+            res = res / 16;
+        }
+
+
+        u.data().write(b'0');
+        while !u.transmission_complete().get() {}
+
+        u.data().write(b'x');
+        while !u.transmission_complete().get() {}
+
+        for i in res_arr.iter() {
+            u.data().write(i + if *i >= 10 { 55 } else { 48 });
+            while !u.transmission_complete().get() {}
+        }
+    };
+}
+
 pub mod raw;
 
 use super::gpio;

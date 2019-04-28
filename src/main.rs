@@ -8,6 +8,7 @@ mod register;
 mod timer;
 #[macro_use]
 mod usart;
+mod mmu;
 
 mod panic_handler;
 
@@ -24,15 +25,25 @@ fn timer_config() {
         .start_count();
 }
 
+fn mmu_test() {
+    let mmu = mmu::Mmu::new();
+
+    print_hexa!(mmu.type_reg().read());
+    println!("");
+
+    print_hexa!(register::Register::new(0xE000_ED90 + 0x04).read());
+    println!("");
+}
+
 #[no_mangle]
 pub unsafe extern "C" fn main() {
     rcc::Rcc::new().enable_hsi().sysclock_into_hsi();
-    let serial = usart::Usart::new_usb_serial(9600);
+    let serial = usart::Usart::new_usb_serial(115200);
     println!("\n");
 
-    timer_config();
+    // mmu_test();
 
-    println!("Test");
+    // timer_config();
 
     gpio::Gpio::new(gpio::raw::GPIO_A, 1)
         .set_active()
@@ -58,16 +69,55 @@ pub unsafe extern "C" fn main() {
         .set_baud_rate(115200)
         .ready_usart();
 
-    wifi.n_write("AT\r\n\r\n".as_bytes());
+    let mut i: u32 = 0;
+
+    wifi.n_write("AT\r\n".as_bytes());
 
     loop {
-        if serial.has_received_char() {
-            let c = serial.read_char();
-            wifi.n_put_char(c);
+        // if serial.has_received_char() {
+        //     let c = serial.read_char();
+        //     wifi.n_put_char(c);
+        // }
+        if i == 100_000 {
+            println!("");
+            wifi.n_write("AT+GMR\r\n".as_bytes());
         }
+
+        if i == 200_000 {
+            println!("");
+            wifi.n_write("AT+CWLAP\r\n".as_bytes());
+        }
+
+        if i == 400_000 {
+            println!("");
+            wifi.n_write("AT+CWLAP\r\nAT+CWJAP=\"Livebox-92d\",\"wifieasy\"\r\n".as_bytes());
+        }
+
+        if i == 600_000 {
+            println!("");
+            wifi.n_write("AT+CIFSR\r\n".as_bytes());
+        }
+
+        if i == 800_000 {
+            println!("");
+            wifi.n_write("AT+CIPSTART=\"TCP\",\"192.168.1.21\",8000\r\n".as_bytes());
+        }
+
+        if i == 1000_000 {
+            println!("");
+            wifi.n_write("AT+CIPSENDBUF=4\r\ntest\r\n".as_bytes());
+        }
+
+        if i == 1200_000 {
+            println!("");
+            wifi.n_write("AT+CIPCLOSE\r\n".as_bytes());
+        }
+
         if wifi.has_received_char() {
             let c = wifi.read_char();
             serial.n_put_char(c);
         }
+
+        i += 1;
     }
 }

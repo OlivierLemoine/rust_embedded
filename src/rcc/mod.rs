@@ -30,6 +30,10 @@ impl Rcc<pll_state::Off> {
         }
     }
 
+    pub fn get_sys_clock_speed() -> u32 {
+        0
+    }
+
     pub fn enable_pll(self) -> Result<Rcc<pll_state::On>, bool> {
         Ok(Rcc {
             base: self.base,
