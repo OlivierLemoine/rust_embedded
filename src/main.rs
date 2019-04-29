@@ -10,6 +10,8 @@ mod timer;
 mod usart;
 mod mmu;
 
+mod kernel;
+
 mod panic_handler;
 
 fn timer_config() {
@@ -33,6 +35,8 @@ fn mmu_test() {
 
     print_hexa!(register::Register::new(0xE000_ED90 + 0x04).read());
     println!("");
+
+    // let a = String::from_str("").
 }
 
 #[no_mangle]
@@ -40,6 +44,9 @@ pub unsafe extern "C" fn main() {
     rcc::Rcc::new().enable_hsi().sysclock_into_hsi();
     let serial = usart::Usart::new_usb_serial(115200);
     println!("\n");
+
+    kernel::alloc::alloc_init();
+    let tmp = kernel::alloc::malloc::<u32>(10).unwrap();
 
     // mmu_test();
 

@@ -1,5 +1,8 @@
 #![allow(dead_code)]
 
-pub mod task;
+pub mod alloc;
 
-// pub mod alloc; NOT WORKING > INVERTED LOW AND HIGH ADDRESSES
+pub mod string;
+
+pub mod task;
+pub mod net;
