@@ -45,8 +45,7 @@ pub unsafe extern "C" fn main() {
     let serial = usart::Usart::new_usb_serial(115200);
     println!("\n");
 
-    kernel::alloc::alloc_init();
-    let tmp = kernel::alloc::malloc::<u32>(10).unwrap();
+    kernel::string::String::new(10);
 
     // mmu_test();
 

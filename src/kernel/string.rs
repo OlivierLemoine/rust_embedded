@@ -19,6 +19,15 @@ impl String {
         }
     }
 
+    pub fn from_str(s: &str) -> String {
+        let str_len = s.len() as u32;
+        let ptr = unsafe { alloc::malloc::<u8>(str_len) }.unwrap();
+        for i in 0..str_len {
+            unsafe { *ptr.offset(i as isize) = s.as_bytes()[i as usize] };
+        }
+        String { ptr, size: str_len }
+    }
+
     pub fn len(&self) -> u32 {
         self.size
     }
@@ -44,7 +53,7 @@ impl String {
         Some(unsafe { *self.ptr.offset(index as isize) } as char)
     }
 
-    pub fn as_ptr(&self) -> *mut u8 {
+    pub fn as_ptr(&self) -> *const u8 {
         self.ptr
     }
 }
