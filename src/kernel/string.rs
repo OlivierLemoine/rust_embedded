@@ -57,3 +57,9 @@ impl String {
         self.ptr
     }
 }
+
+impl Drop for String {
+    fn drop(&mut self) {
+        unsafe { alloc::free(self.ptr) };
+    }
+}
