@@ -1,4 +1,6 @@
-use super::super::usart;
+mod at;
+pub mod tcp;
 
-pub struct Socket {
+pub fn init() {
+    at::init();
 }

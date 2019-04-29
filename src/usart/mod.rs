@@ -10,7 +10,9 @@ macro_rules! print {
 #[macro_export]
 macro_rules! println {
     ($input:expr) => {
-        print!($input).put_char(b'\n')
+        let u = usart::Usart::__com(usart::raw::USART2);
+        u.write($input.as_bytes());
+        u.put_char(b'\n')
     };
 }
 
@@ -250,28 +252,30 @@ impl Usart<states::Enable, Undefined, usart_state::Waiting> {
 }
 
 impl Usart<states::Enable, mode::RxTx, usart_state::Ready> {
-    pub fn put_char(self, c: u8) -> Usart<states::Enable, mode::RxTx, usart_state::Ready> {
+    pub fn put_char(&self, c: u8) {
         self.base.data().write(c);
         while !self.base.transmission_complete().get() {}
-        self
     }
 
-    pub fn write(mut self, s: &[u8]) -> Usart<states::Enable, mode::RxTx, usart_state::Ready> {
+    pub fn write_dec(&self, v: u32) {
+        let mut res = v;
+
+        let mut res_arr: [u8; 10] = [0; 10];
+
+        for i in (0..10).rev() {
+            res_arr[i] = (res % 10) as u8;
+            res = res / 10;
+        }
+
+        for i in res_arr.iter() {
+            self.put_char(48 + i);
+        }
+    }
+
+    pub fn write(&self, s: &[u8]) {
         // let tmp = &self;
         for c in s {
-            self = self.put_char(*c);
-        }
-        self
-    }
-
-    pub fn n_put_char(&self, c: u8) {
-        self.base.data().write(c);
-        while !self.base.transmit_data_register_empty().get() {}
-    }
-
-    pub fn n_write(&self, s: &[u8]) {
-        for c in s {
-            self.n_put_char(*c);
+            self.put_char(*c);
         }
     }
 

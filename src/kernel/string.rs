@@ -53,6 +53,10 @@ impl String {
         Some(unsafe { *self.ptr.offset(index as isize) } as char)
     }
 
+    pub fn as_bytes(&self) -> &[u8] {
+        unsafe { core::slice::from_raw_parts_mut(self.ptr, self.len() as usize) }
+    }
+
     pub fn as_ptr(&self) -> *const u8 {
         self.ptr
     }

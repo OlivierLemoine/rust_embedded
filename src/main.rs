@@ -15,6 +15,7 @@ mod kernel;
 mod panic_handler;
 
 use kernel::vec::Vec;
+use kernel::string::String;
 
 fn timer_config() {
     timer::Timer::new(timer::raw::TIMER_2)
@@ -45,39 +46,22 @@ fn mmu_test() {
 pub unsafe extern "C" fn main() {
     rcc::Rcc::new().enable_hsi().sysclock_into_hsi();
     let serial = usart::Usart::new_usb_serial(115200);
+    kernel::net::init();
     println!("\n");
 
     // mmu_test();
 
     // timer_config();
 
-    gpio::Gpio::new(gpio::raw::GPIO_A, 1)
-        .set_active()
-        .into_alternate()
-        .alternate_function(gpio::alternate_function::USART4)
-        .into_high_speed()
-        .into_no_pull()
-        .into_push_pull();
-    gpio::Gpio::new(gpio::raw::GPIO_A, 0)
-        .set_active()
-        .into_alternate()
-        .alternate_function(gpio::alternate_function::USART4)
-        .into_high_speed()
-        .into_no_pull()
-        .into_push_pull();
+    // kernel::net
 
-    let wifi = usart::Usart::new(usart::raw::USART4)
-        .set_active()
-        .into_rxtx()
-        .into_8_bit_message()
-        .into_no_parity()
-        .into_1_stop_bit()
-        .set_baud_rate(115200)
-        .ready_usart();
+    let wifi = usart::Usart::__com(usart::raw::USART4);
 
     let mut i: u32 = 0;
 
-    wifi.n_write("AT+CWJAP=\"Livebox-092d\",\"wifieasy\"\r\n".as_bytes());
+    let tcp = kernel::net::tcp::Tcp::new();
+
+    wifi.write("AT+CWJAP=\"Livebox-092d\",\"wifieasy\"\r\n".as_bytes());
 
     loop {
         // if serial.has_received_char() {
@@ -87,32 +71,18 @@ pub unsafe extern "C" fn main() {
 
         if i == 400_000 {
             println!("");
-            wifi.n_write("AT+CIFSR\r\n".as_bytes());
+            wifi.write("AT+CIFSR\r\n".as_bytes());
         }
 
         if i == 600_000 {
             println!("");
-            wifi.n_write("AT+CIPSTART=\"TCP\",\"192.168.1.21\",8000\r\n".as_bytes());
-        }
-
-        if i == 650_000 {
-            println!("");
-            wifi.n_write("AT+CIPSENDBUF\r\n".as_bytes());
-        }
-
-        if i == 700_000 {
-            println!("");
-            wifi.n_write("test\r\noui\r\nc'est moi\r\n".as_bytes());
-        }
-
-        if i == 900_000 {
-            println!("");
-            wifi.n_write("+++\r\nAT+CIPCLOSE\r\n".as_bytes());
+            tcp.connect(String::from_str("192.168.1.21"), String::from_str("8000"))
+            // wifi.write("AT+CIPSTART=\"TCP\",\"192.168.1.21\",8000\r\n".as_bytes());
         }
 
         if wifi.has_received_char() {
             let c = wifi.read_char();
-            serial.n_put_char(c);
+            serial.put_char(c);
         }
 
         i += 1;
