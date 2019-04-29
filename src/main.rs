@@ -47,9 +47,6 @@ pub unsafe extern "C" fn main() {
     let serial = usart::Usart::new_usb_serial(115200);
     println!("\n");
 
-    let mut v: Vec<u8> = Vec::new();
-    v.push(0x02);
-
     // mmu_test();
 
     // timer_config();
@@ -80,46 +77,37 @@ pub unsafe extern "C" fn main() {
 
     let mut i: u32 = 0;
 
-    wifi.n_write("AT\r\n".as_bytes());
+    wifi.n_write("AT+CWJAP=\"Livebox-092d\",\"wifieasy\"\r\n".as_bytes());
 
     loop {
         // if serial.has_received_char() {
         //     let c = serial.read_char();
         //     wifi.n_put_char(c);
         // }
-        if i == 100_000 {
-            println!("");
-            wifi.n_write("AT+GMR\r\n".as_bytes());
-        }
-
-        if i == 200_000 {
-            println!("");
-            wifi.n_write("AT+CWLAP\r\n".as_bytes());
-        }
 
         if i == 400_000 {
-            println!("");
-            wifi.n_write("AT+CWLAP\r\nAT+CWJAP=\"Livebox-92d\",\"wifieasy\"\r\n".as_bytes());
-        }
-
-        if i == 600_000 {
             println!("");
             wifi.n_write("AT+CIFSR\r\n".as_bytes());
         }
 
-        if i == 800_000 {
+        if i == 600_000 {
             println!("");
             wifi.n_write("AT+CIPSTART=\"TCP\",\"192.168.1.21\",8000\r\n".as_bytes());
         }
 
-        if i == 1000_000 {
+        if i == 650_000 {
             println!("");
-            wifi.n_write("AT+CIPSENDBUF=4\r\ntest\r\n".as_bytes());
+            wifi.n_write("AT+CIPSENDBUF\r\n".as_bytes());
         }
 
-        if i == 1200_000 {
+        if i == 700_000 {
             println!("");
-            wifi.n_write("AT+CIPCLOSE\r\n".as_bytes());
+            wifi.n_write("test\r\noui\r\nc'est moi\r\n".as_bytes());
+        }
+
+        if i == 900_000 {
+            println!("");
+            wifi.n_write("+++\r\nAT+CIPCLOSE\r\n".as_bytes());
         }
 
         if wifi.has_received_char() {

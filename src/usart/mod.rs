@@ -3,24 +3,14 @@
 #[macro_export]
 macro_rules! print {
     ($input:expr) => {
-        let u = usart::raw::Usart::new(usart::raw::USART2);
-        for i in $input.bytes() {
-            u.data().write(i);
-            while !u.transmission_complete().get() {}
-        }
+        usart::Usart::__com(usart::raw::USART2).write($input.as_bytes())
     };
 }
 
 #[macro_export]
 macro_rules! println {
     ($input:expr) => {
-        let u = usart::raw::Usart::new(usart::raw::USART2);
-        for i in $input.bytes() {
-            u.data().write(i);
-            while !u.transmission_complete().get() {}
-        }
-        u.data().write(b'\n');
-        while !u.transmission_complete().get() {}
+        print!($input).put_char(b'\n')
     };
 }
 
@@ -56,7 +46,6 @@ macro_rules! print_hexa {
             res_arr[i] = (res % 16) as u8;
             res = res / 16;
         }
-
 
         u.data().write(b'0');
         while !u.transmission_complete().get() {}
@@ -120,6 +109,15 @@ impl Usart<Undefined, Undefined, Undefined> {
             .into_8_bit_message()
             .set_baud_rate(baud)
             .ready_usart()
+    }
+
+    pub fn __com(periph: raw::UsartAddr) -> Usart<states::Enable, mode::RxTx, usart_state::Ready> {
+        Usart {
+            base: raw::Usart::new(periph),
+            state: states::Enable,
+            mode: mode::RxTx,
+            usart_state: usart_state::Ready,
+        }
     }
 }
 
