@@ -14,6 +14,8 @@ mod kernel;
 
 mod panic_handler;
 
+use kernel::vec::Vec;
+
 fn timer_config() {
     timer::Timer::new(timer::raw::TIMER_2)
         .enable()
@@ -45,7 +47,8 @@ pub unsafe extern "C" fn main() {
     let serial = usart::Usart::new_usb_serial(115200);
     println!("\n");
 
-    kernel::string::String::new(10);
+    let mut v: Vec<u8> = Vec::new();
+    v.push(0x02);
 
     // mmu_test();
 
