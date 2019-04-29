@@ -60,8 +60,7 @@ $(TARGET).elf: $(OBJS)
 
 .PHONY: clean
 clean:
-	rm $(OBJS) $(TARGET).elf $(RUST_LIB_BIN)
+	rm $(OBJS) $(TARGET).elf $(RUST_LIB_BIN); echo
 
 .PHONY: remake
-remake: 
-	make clean; make all
+remake: clean all
