@@ -58,12 +58,12 @@ $(TARGET).elf: $(OBJS)
 	$(CC) -mfloat-abi=hard $^ $(LFLAGS) -o $@
 	
 .PHONY: lib_kernel
-lib_kernel: lib_hal
+lib_kernel: lib_hal lib_allocator
 	rustc $(RUST_FLAGS) $(RUST_FLAGS_LIB) --crate-name=kernel --extern allocator=./allocator/src/lib.rlib --extern hal=./hal/src/lib.rlib ./kernel/src/lib.rs -o ./kernel/src/lib.rlib
 
 .PHONY: lib_hal
-lib_hal: lib_allocator
-	rustc $(RUST_FLAGS) $(RUST_FLAGS_LIB)  --extern allocator=./allocator/src/lib.rlib --crate-name=hal ./hal/src/lib.rs -o ./hal/src/lib.rlib
+lib_hal:
+	rustc $(RUST_FLAGS) $(RUST_FLAGS_LIB)  --crate-name=hal ./hal/src/lib.rs -o ./hal/src/lib.rlib
 
 .PHONY: lib_allocator
 lib_allocator:

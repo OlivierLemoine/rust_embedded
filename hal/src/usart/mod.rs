@@ -67,8 +67,6 @@ pub mod usart_handlers;
 
 use super::gpio;
 
-use alloc::boxed::Box;
-
 pub mod states {
     pub struct Disable;
     pub struct Enable;
@@ -229,9 +227,9 @@ impl<MODE> Usart<states::Enable, MODE, usart_state::Waiting> {
 
     pub fn set_on_received_callback(
         self,
-        cb: Box<Fn(char) -> ()>,
+        cb: *mut fn(char) -> (),
     ) -> Usart<states::Enable, MODE, usart_state::Waiting> {
-        unsafe { usart_handlers::USART4_HANDLER = Some(cb) };
+        unsafe { usart_handlers::USART4_HANDLER = cb };
         self
     }
 }

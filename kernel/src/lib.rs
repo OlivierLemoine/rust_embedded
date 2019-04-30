@@ -10,5 +10,6 @@ pub mod task;
 pub mod net;
 
 pub fn init(){
+    task::init();
     net::init();
 }

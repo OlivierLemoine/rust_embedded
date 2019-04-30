@@ -5,4 +5,3 @@ authors = ["olivierlemoine <olivier.lemoine@sii.fr>"]
 edition = "2018"
 
 [dependencies]
-allocator = { path = "../allocator" }

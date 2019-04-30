@@ -1,8 +1,6 @@
 #![no_std]
 
-extern crate allocator;
-extern crate alloc;
-
+#![feature(impl_trait_in_bindings)]
 
 pub mod gpio;
 pub mod nvic;

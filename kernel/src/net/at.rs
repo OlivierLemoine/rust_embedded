@@ -124,15 +124,15 @@ pub fn init() {
         .into_no_parity()
         .into_1_stop_bit()
         .enable_receive_interrupt()
-        .set_on_received_callback(Box::new(|c| {
-            let s: &mut String = unsafe { &mut AT_HANDLER }.get_data_in_mut();
-            s.push(c);
-            let u = hal::usart::Usart::reopen_com(
-                hal::usart::raw::USART2,
-            );
-            u.write(s.as_bytes());
-            u.put_char(b'\n');
-        }))
+        // .set_on_received_callback(Box::new(|c| {
+        //     let s: &mut String = unsafe { &mut AT_HANDLER }.get_data_in_mut();
+        //     s.push(c);
+        //     let u = hal::usart::Usart::reopen_com(
+        //         hal::usart::raw::USART2,
+        //     );
+        //     u.write(s.as_bytes());
+        //     u.put_char(b'\n');
+        // }))
         .set_baud_rate(115200)
         .ready_usart();
 
