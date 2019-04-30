@@ -1,14 +1,16 @@
 #![allow(dead_code)]
 
+use core::ptr;
+
 macro_rules! isFree {
     ($ptr:expr) => {
-        (*$ptr & 0x8000_0000) == 0
+        (ptr::read($ptr) & 0x8000_0000) == 0
     };
 }
 
 macro_rules! setFree {
     ($ptr:expr) => {
-        *$ptr = *$ptr & 0x7FFF_FFFF
+        ptr::write($ptr, ptr::read($ptr) & 0x7FFF_FFFF)
     };
 }
 
@@ -20,19 +22,19 @@ macro_rules! next {
 
 macro_rules! setOccupied {
     ($ptr:expr) => {
-        *$ptr = *$ptr | 0x8000_0000
+        ptr::write($ptr, ptr::read($ptr) | 0x8000_0000)
     };
 }
 
 macro_rules! getSize {
     ($ptr:expr) => {
-        *$ptr & 0x7FFF_FFFF
+        ptr::read($ptr) & 0x7FFF_FFFF
     };
 }
 
 macro_rules! setSize {
     ($ptr:expr, $value:expr) => {
-        *$ptr = *$ptr | (0x7FFF_FFFF & $value)
+        ptr::write($ptr, ptr::read($ptr) | (0x7FFF_FFFF & $value))
     };
 }
 
@@ -50,7 +52,7 @@ extern "C" {
 
 pub unsafe fn alloc_init() {
     let pos = _ssystem_ram as *mut u32;
-    *pos = 0x7FFF_FFFF;
+    ptr::write(pos, 0x7FFF_FFFF);
 }
 
 pub unsafe fn malloc<T>(size: u32) -> Result<*mut T, bool> {
