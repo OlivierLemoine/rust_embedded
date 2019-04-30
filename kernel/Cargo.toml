@@ -1,0 +1,9 @@
+[package]
+name = "kernel"
+version = "0.1.0"
+authors = ["olivierlemoine <olivier.lemoine@sii.fr>"]
+edition = "2018"
+
+[dependencies]
+hal = { path = "../hal" }
+allocator = { path = "../allocator" }

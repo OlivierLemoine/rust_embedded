@@ -14,5 +14,6 @@ pub mod usart;
 pub mod mmu;
 
 pub fn init(){
+    rcc::Rcc::new().enable_hsi().sysclock_into_hsi();
     usart::Usart::new_usb_serial(115200);
 }

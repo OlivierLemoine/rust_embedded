@@ -5,15 +5,13 @@ extern crate alloc;
 extern crate allocator;
 #[macro_use]
 extern crate hal;
-use hal::{rcc::Rcc, usart::Usart};
+extern crate kernel;
 
 mod panic_handler;
 
-// use alloc::string::String;
-
 #[no_mangle]
 pub unsafe extern "C" fn main() {
-    Rcc::new().enable_hsi().sysclock_into_hsi();
+    hal::init();
     println!("\n");
 
     // let socket = kernel::net::tcp::Tcp::new();

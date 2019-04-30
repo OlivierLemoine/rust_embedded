@@ -1,5 +1,5 @@
-use super::super::super::hal::gpio;
-use super::super::super::hal::usart;
+use hal::gpio;
+use hal::usart;
 
 
 use alloc::boxed::Box;
@@ -127,8 +127,8 @@ pub fn init() {
         .set_on_received_callback(Box::new(|c| {
             let s: &mut String = unsafe { &mut AT_HANDLER }.get_data_in_mut();
             s.push(c);
-            let u = super::super::super::hal::usart::Usart::reopen_com(
-                super::super::super::hal::usart::raw::USART2,
+            let u = hal::usart::Usart::reopen_com(
+                hal::usart::raw::USART2,
             );
             u.write(s.as_bytes());
             u.put_char(b'\n');
