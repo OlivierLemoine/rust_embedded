@@ -5,6 +5,7 @@
 
 .global vtable
 .global Default_Handler
+.global abort
 /*
  * The actual vector table.
  * Only the size of RAM and 'reset' handler are
@@ -431,6 +432,7 @@ vtable:
  */
 .section .text.Default_Handler,"ax",%progbits
 Default_Handler:
+    abort:
     default_interrupt_loop:
         B default_interrupt_loop
 .size Default_Handler, .-Default_Handler

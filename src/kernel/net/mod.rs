@@ -1,6 +1,6 @@
-// mod at;
+mod at;
 // pub mod tcp;
 
-// pub fn init() {
-//     at::init();
-// }
+pub fn init() {
+    at::init();
+}

@@ -3,14 +3,14 @@
 #[macro_export]
 macro_rules! print {
     ($input:expr) => {
-        usart::Usart::__com(usart::raw::USART2).write($input.as_bytes())
+        usart::Usart::reopen_com(usart::raw::USART2).write($input.as_bytes())
     };
 }
 
 #[macro_export]
 macro_rules! println {
     ($input:expr) => {
-        let u = usart::Usart::__com(usart::raw::USART2);
+        let u = usart::Usart::reopen_com(usart::raw::USART2);
         u.write($input.as_bytes());
         u.put_char(b'\n')
     };
@@ -113,7 +113,7 @@ impl Usart<Undefined, Undefined, Undefined> {
             .ready_usart()
     }
 
-    pub fn __com(periph: raw::UsartAddr) -> Usart<states::Enable, mode::RxTx, usart_state::Ready> {
+    pub fn reopen_com(periph: raw::UsartAddr) -> Usart<states::Enable, mode::RxTx, usart_state::Ready> {
         Usart {
             base: raw::Usart::new(periph),
             state: states::Enable,

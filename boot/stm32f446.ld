@@ -37,6 +37,9 @@ SECTIONS
         . = ALIGN(4);
     } >FLASH
 
+    __exidx_start = .;
+    __exidx_end = .;
+
     /* The 'rodata' section contains read-only data,
     * constants, strings, information that won't change. */
     .rodata :

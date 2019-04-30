@@ -51,12 +51,12 @@ INCLUDE =
 .PHONY: all
 all: $(TARGET).elf
 %.o: %.S
-	$(CC) $(DEBUG) $(ASFLAGS) $< -o $@
+	$(CC) -mfloat-abi=hard $(DEBUG) $(ASFLAGS) $< -o $@
 %.o: %.rs
 	# rustc $(RUST_FLAGS) $(RUST_FLAGS_LIB) $(RUST_LIB) -o $(RUST_LIB_BIN)
 	rustc $(RUST_FLAGS) $(RUST_FLAGS_BIN) $< -o $@
 $(TARGET).elf: $(OBJS)
-	$(CC) $^ $(LFLAGS) -o $@
+	$(CC) -mfloat-abi=hard $^ $(LFLAGS) -o $@
 
 .PHONY: clean
 clean:

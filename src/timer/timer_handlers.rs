@@ -1,4 +1,4 @@
-// use super::super::register::{Bit, Register};
+#![allow(dead_code)]
 
 #[no_mangle]
 pub unsafe extern "C" fn TIM2_IRQHandler() {

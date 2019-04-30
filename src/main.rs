@@ -73,7 +73,7 @@ unsafe impl GlobalAlloc for Alloc {
         ptr.offset(4) as *mut u8
     }
 
-    unsafe fn dealloc(&self, ptr: *mut u8, l: Layout) {
+    unsafe fn dealloc(&self, ptr: *mut u8, _l: Layout) {
         let header = ptr.offset(-4) as *mut u32;
 
         let next_header = next!(header);
@@ -134,12 +134,13 @@ fn mmu_test() {
 pub unsafe extern "C" fn main() {
     rcc::Rcc::new().enable_hsi().sysclock_into_hsi();
     let serial = usart::Usart::new_usb_serial(115200);
+    kernel::net::init();
     println!("\n");
 
-    // mmu_test();
-    // timer_config();
+    mmu_test();
+    timer_config();
 
-    let wifi = usart::Usart::__com(usart::raw::USART4);
+    let wifi = usart::Usart::reopen_com(usart::raw::USART4);
 
     let mut i: u32 = 0;
 

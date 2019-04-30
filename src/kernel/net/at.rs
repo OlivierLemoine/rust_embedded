@@ -1,7 +1,9 @@
 use super::super::super::gpio;
 use super::super::super::usart;
 
-static mut AT_HANDLER: *mut ATHandler = 0 as *mut ATHandler;
+use alloc::string::String;
+use alloc::vec::Vec;
+static mut AT_HANDLER: ATHandler = ATHandler { connections: None };
 
 pub enum ConnectionType {
     TCP,
@@ -19,7 +21,7 @@ impl Connection {
     }
 
     pub fn connect_to(&self, ip: String, port: String) {
-        let u = usart::Usart::__com(usart::raw::USART4);
+        let u = usart::Usart::reopen_com(usart::raw::USART4);
         u.write("AT+CIPSTART=\"TCP\",\"192.168.1.21\",8000\r\n".as_bytes());
         u.write(match self.c_type {
             ConnectionType::TCP => b"TCP,",
@@ -32,15 +34,15 @@ impl Connection {
     }
 
     pub fn send(&self, s: String) {
-        let u = usart::Usart::__com(usart::raw::USART4);
+        let u = usart::Usart::reopen_com(usart::raw::USART4);
         u.write("AT+CIPSENDBUF=".as_bytes());
-        u.write_dec(s.len());
+        u.write_dec(s.len() as u32);
         u.write(s.as_bytes());
     }
 }
 
 struct ATHandler {
-    pub connections: Vec<Connection>,
+    connections: Option<Vec<Connection>>,
 }
 
 pub fn init() {
@@ -68,12 +70,9 @@ pub fn init() {
         .set_baud_rate(115200)
         .ready_usart();
 
-    // unsafe {
-    //     AT_HANDLER = alloc::malloc::<ATHandler>(core::mem::size_of::<ATHandler>() as u32).unwrap();
-    //     *AT_HANDLER = ATHandler {
-    //         connections: Vec::new(),
-    //     }
-    // };
+    unsafe {
+        AT_HANDLER.connections = Some(Vec::with_capacity(0));
+    }
 }
 
 pub fn create(c_type: ConnectionType) -> Connection {
