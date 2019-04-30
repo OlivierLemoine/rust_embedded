@@ -1,8 +1,11 @@
-use super::at;
 use alloc::string::String;
 
+use super::at;
+use at::Connection;
+
+
 pub struct Tcp {
-    connection: at::Connection,
+    connection: at::ConnectionFd,
 }
 
 impl Tcp {

@@ -10,14 +10,53 @@ pub enum ConnectionType {
     UDP,
 }
 
-pub struct Connection {
+struct __Connection {
     c_type: ConnectionType,
-    id: u32,
+    id: usize,
 }
 
-impl Connection {
-    pub fn new(c_type: ConnectionType, id: u32) -> Connection {
-        Connection { c_type, id }
+struct ATHandler {
+    connections: Option<Vec<__Connection>>,
+}
+
+pub type ConnectionFd = usize;
+
+pub trait Connection {
+    fn connect_to(&self, ip: String, port: String);
+    fn send(&self, msg: String);
+}
+
+impl Connection for ConnectionFd {
+    fn connect_to(&self, ip: String, port: String) {
+        let tmp = &unsafe { &AT_HANDLER }.get_connection()[*self];
+        tmp.connect_to(ip, port);
+    }
+
+    fn send(&self, msg: String) {
+        let tmp = &unsafe { &AT_HANDLER }.get_connection()[*self];
+        tmp.send(msg);
+    }
+}
+
+impl ATHandler {
+    pub fn get_connection(&self) -> &Vec<__Connection> {
+        match &self.connections {
+            Some(v) => v,
+            None => panic!("Initialize AT before use"),
+        }
+    }
+
+    pub fn get_connection_mut(&mut self) -> &mut Vec<__Connection> {
+        match &mut self.connections {
+            Some(v) => v,
+            None => panic!("Initialize AT before use"),
+        }
+    }
+}
+
+impl __Connection {
+    pub fn new(c_type: ConnectionType, id: usize) -> __Connection {
+        __Connection { c_type, id }
     }
 
     pub fn connect_to(&self, ip: String, port: String) {
@@ -39,10 +78,6 @@ impl Connection {
         u.write_dec(s.len() as u32);
         u.write(s.as_bytes());
     }
-}
-
-struct ATHandler {
-    connections: Option<Vec<Connection>>,
 }
 
 pub fn init() {
@@ -75,7 +110,9 @@ pub fn init() {
     }
 }
 
-pub fn create(c_type: ConnectionType) -> Connection {
-    let c = Connection::new(c_type, 0);
-    c
+pub fn create(c_type: ConnectionType) -> ConnectionFd {
+    let id = unsafe { &AT_HANDLER }.get_connection().len();
+    let c = __Connection::new(c_type, id);
+    unsafe { &mut AT_HANDLER }.get_connection_mut().push(c);
+    id
 }

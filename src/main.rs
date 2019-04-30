@@ -107,6 +107,8 @@ mod kernel;
 
 mod panic_handler;
 
+use alloc::string::String;
+
 fn timer_config() {
     timer::Timer::new(timer::raw::TIMER_2)
         .enable()
@@ -139,6 +141,9 @@ pub unsafe extern "C" fn main() {
 
     mmu_test();
     timer_config();
+
+    let w = kernel::net::tcp::Tcp::new();
+    w.connect(String::from("192.168.1.21"), String::from("8000"));
 
     let wifi = usart::Usart::reopen_com(usart::raw::USART4);
 
