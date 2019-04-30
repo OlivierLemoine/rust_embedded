@@ -1,4 +1,3 @@
-use super::super::string::String;
 use super::at;
 
 pub struct Tcp {
@@ -12,11 +11,11 @@ impl Tcp {
         }
     }
 
-    pub fn connect(&self, ip: String, port: String) {
-        self.connect(ip, port);
-    }
+    // pub fn connect(&self, ip: String, port: String) {
+    //     self.connect(ip, port);
+    // }
 
-    pub fn send(&self, s: String) {
-        self.send(s);
-    }
+    // pub fn send(&self, s: String) {
+    //     self.send(s);
+    // }
 }

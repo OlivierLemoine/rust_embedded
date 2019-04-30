@@ -1,8 +1,5 @@
 use super::super::super::gpio;
 use super::super::super::usart;
-use super::super::alloc;
-use super::super::string::String;
-use super::super::vec::Vec;
 
 static mut AT_HANDLER: *mut ATHandler = 0 as *mut ATHandler;
 
