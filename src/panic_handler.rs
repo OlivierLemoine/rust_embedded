@@ -4,6 +4,6 @@ use super::hal;
 
 #[panic_handler]
 fn panic(_panic: &PanicInfo<'_>) -> ! {
-    print!("panic occurd !");
+    // print!("panic occurd !");
     loop {}
 }

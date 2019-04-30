@@ -1,9 +1,14 @@
 use super::super::super::hal::gpio;
 use super::super::super::hal::usart;
 
+
+use alloc::boxed::Box;
 use alloc::string::String;
 use alloc::vec::Vec;
-static mut AT_HANDLER: ATHandler = ATHandler { connections: None };
+static mut AT_HANDLER: ATHandler = ATHandler {
+    connections: None,
+    data_in: None,
+};
 
 pub enum ConnectionType {
     TCP,
@@ -17,6 +22,7 @@ struct __Connection {
 
 struct ATHandler {
     connections: Option<Vec<__Connection>>,
+    data_in: Option<String>,
 }
 
 pub type ConnectionFd = usize;
@@ -48,6 +54,20 @@ impl ATHandler {
 
     pub fn get_connection_mut(&mut self) -> &mut Vec<__Connection> {
         match &mut self.connections {
+            Some(v) => v,
+            None => panic!("Initialize AT before use"),
+        }
+    }
+
+    pub fn get_data_in(&self) -> &String {
+        match &self.data_in {
+            Some(v) => v,
+            None => panic!("Initialize AT before use"),
+        }
+    }
+
+    pub fn get_data_in_mut(&mut self) -> &mut String {
+        match &mut self.data_in {
             Some(v) => v,
             None => panic!("Initialize AT before use"),
         }
@@ -103,11 +123,22 @@ pub fn init() {
         .into_8_bit_message()
         .into_no_parity()
         .into_1_stop_bit()
+        .enable_receive_interrupt()
+        .set_on_received_callback(Box::new(|c| {
+            let s: &mut String = unsafe { &mut AT_HANDLER }.get_data_in_mut();
+            s.push(c);
+            let u = super::super::super::hal::usart::Usart::reopen_com(
+                super::super::super::hal::usart::raw::USART2,
+            );
+            u.write(s.as_bytes());
+            u.put_char(b'\n');
+        }))
         .set_baud_rate(115200)
         .ready_usart();
 
     unsafe {
         AT_HANDLER.connections = Some(Vec::with_capacity(0));
+        AT_HANDLER.data_in = Some(String::from(""));
     }
 }
 

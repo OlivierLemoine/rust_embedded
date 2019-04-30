@@ -63,8 +63,11 @@ macro_rules! print_hexa {
 }
 
 pub mod raw;
+pub mod usart_handlers;
 
 use super::gpio;
+
+use alloc::boxed::Box;
 
 pub mod states {
     pub struct Disable;
@@ -113,7 +116,9 @@ impl Usart<Undefined, Undefined, Undefined> {
             .ready_usart()
     }
 
-    pub fn reopen_com(periph: raw::UsartAddr) -> Usart<states::Enable, mode::RxTx, usart_state::Ready> {
+    pub fn reopen_com(
+        periph: raw::UsartAddr,
+    ) -> Usart<states::Enable, mode::RxTx, usart_state::Ready> {
         Usart {
             base: raw::Usart::new(periph),
             state: states::Enable,
@@ -192,13 +197,6 @@ impl<MODE> Usart<states::Enable, MODE, usart_state::Waiting> {
     }
 
     pub fn set_baud_rate(self, baud: u32) -> Usart<states::Enable, MODE, usart_state::Waiting> {
-        // let v = match baud {
-        //     9600 => 0x683,
-        //     57600 => 0x116,
-        //     115200 => 0x8B,
-        //     _ => 0x684,
-        // };
-
         let b = 16_000_000 / baud;
 
         self.base.baud_rate().write(b as u16);
@@ -212,6 +210,28 @@ impl<MODE> Usart<states::Enable, MODE, usart_state::Waiting> {
 
     pub fn into_9_bit_message(self) -> Usart<states::Enable, MODE, usart_state::Waiting> {
         self.base.word_length_9_not_8().set(true);
+        self
+    }
+
+    pub fn enable_receive_interrupt(self) -> Usart<states::Enable, MODE, usart_state::Waiting> {
+        self.base
+            .read_data_register_not_empty_interrupt_enabled()
+            .set(true);
+        self
+    }
+
+    pub fn disable_receive_interrupt(self) -> Usart<states::Enable, MODE, usart_state::Waiting> {
+        self.base
+            .read_data_register_not_empty_interrupt_enabled()
+            .set(false);
+        self
+    }
+
+    pub fn set_on_received_callback(
+        self,
+        cb: Box<Fn(char) -> ()>,
+    ) -> Usart<states::Enable, MODE, usart_state::Waiting> {
+        unsafe { usart_handlers::USART4_HANDLER = Some(cb) };
         self
     }
 }

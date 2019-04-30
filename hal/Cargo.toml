@@ -1,0 +1,8 @@
+[package]
+name = "hal"
+version = "0.1.0"
+authors = ["olivierlemoine <olivier.lemoine@sii.fr>"]
+edition = "2018"
+
+[dependencies]
+allocator = { path = "../allocator" }

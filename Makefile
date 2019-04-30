@@ -52,11 +52,19 @@ INCLUDE =
 all: $(TARGET).elf
 %.o: %.S
 	$(CC) -mfloat-abi=hard $(DEBUG) $(ASFLAGS) $< -o $@
-%.o: %.rs
-	# rustc $(RUST_FLAGS) $(RUST_FLAGS_LIB) ./hal/src/lib.rs -o ./hal/src/lib.rlib
-	rustc $(RUST_FLAGS) $(RUST_FLAGS_BIN) -L hal=./hal/src/lib.rlib $< -o $@ 
+%.o: %.rs lib_hal
+	rustc $(RUST_FLAGS) $(RUST_FLAGS_BIN) --extern allocator=./allocator/src/lib.rlib --extern hal=./hal/src/lib.rlib $< -o $@ 
 $(TARGET).elf: $(OBJS)
 	$(CC) -mfloat-abi=hard $^ $(LFLAGS) -o $@
+	
+.PHONY: lib_hal
+lib_hal: lib_allocator
+	rustc $(RUST_FLAGS) $(RUST_FLAGS_LIB)  --extern allocator=./allocator/src/lib.rlib --crate-name=hal ./hal/src/lib.rs -o ./hal/src/lib.rlib
+
+.PHONY: lib_allocator
+lib_allocator:
+	rustc $(RUST_FLAGS) $(RUST_FLAGS_LIB) --crate-name=allocator ./allocator/src/lib.rs -o ./allocator/src/lib.rlib
+
 
 .PHONY: clean
 clean:
