@@ -1,6 +1,6 @@
 use core::panic::PanicInfo;
 
-use super::usart;
+use super::hal;
 
 #[panic_handler]
 fn panic(_panic: &PanicInfo<'_>) -> ! {

@@ -53,8 +53,8 @@ all: $(TARGET).elf
 %.o: %.S
 	$(CC) -mfloat-abi=hard $(DEBUG) $(ASFLAGS) $< -o $@
 %.o: %.rs
-	# rustc $(RUST_FLAGS) $(RUST_FLAGS_LIB) $(RUST_LIB) -o $(RUST_LIB_BIN)
-	rustc $(RUST_FLAGS) $(RUST_FLAGS_BIN) $< -o $@
+	# rustc $(RUST_FLAGS) $(RUST_FLAGS_LIB) ./hal/src/lib.rs -o ./hal/src/lib.rlib
+	rustc $(RUST_FLAGS) $(RUST_FLAGS_BIN) -L hal=./hal/src/lib.rlib $< -o $@ 
 $(TARGET).elf: $(OBJS)
 	$(CC) -mfloat-abi=hard $^ $(LFLAGS) -o $@
 

@@ -1,7 +1,7 @@
 use alloc::string::String;
 
 use super::at;
-use at::Connection;
+use super::at::Connection;
 
 
 pub struct Tcp {

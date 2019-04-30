@@ -3,14 +3,14 @@
 #[macro_export]
 macro_rules! print {
     ($input:expr) => {
-        usart::Usart::reopen_com(usart::raw::USART2).write($input.as_bytes())
+        hal::usart::Usart::reopen_com(hal::usart::raw::USART2).write($input.as_bytes())
     };
 }
 
 #[macro_export]
 macro_rules! println {
     ($input:expr) => {
-        let u = usart::Usart::reopen_com(usart::raw::USART2);
+        let u = hal::usart::Usart::reopen_com(hal::usart::raw::USART2);
         u.write($input.as_bytes());
         u.put_char(b'\n')
     };
@@ -19,7 +19,7 @@ macro_rules! println {
 #[macro_export]
 macro_rules! print_u32 {
     ($input:expr) => {
-        let u = usart::raw::Usart::new(usart::raw::USART2);
+        let u = hal::usart::raw::Usart::new(hal::usart::raw::USART2);
         let mut res = $input;
 
         let mut res_arr: [u8; 10] = [0; 10];
@@ -39,7 +39,7 @@ macro_rules! print_u32 {
 #[macro_export]
 macro_rules! print_hexa {
     ($input:expr) => {
-        let u = usart::raw::Usart::new(usart::raw::USART2);
+        let u = hal::usart::raw::Usart::new(hal::usart::raw::USART2);
         let mut res = $input;
 
         let mut res_arr: [u8; 8] = [0; 8];

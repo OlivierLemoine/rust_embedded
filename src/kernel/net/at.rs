@@ -1,5 +1,5 @@
-use super::super::super::gpio;
-use super::super::super::usart;
+use super::super::super::hal::gpio;
+use super::super::super::hal::usart;
 
 use alloc::string::String;
 use alloc::vec::Vec;
@@ -61,7 +61,8 @@ impl __Connection {
 
     pub fn connect_to(&self, ip: String, port: String) {
         let u = usart::Usart::reopen_com(usart::raw::USART4);
-        u.write("AT+CIPSTART=\"TCP\",\"192.168.1.21\",8000\r\n".as_bytes());
+        // u.write("AT+CIPSTART=\"TCP\",\"192.168.1.21\",8000\r\n".as_bytes());
+        u.write(b"AT+CIPSTART=");
         u.write(match self.c_type {
             ConnectionType::TCP => b"TCP,",
             ConnectionType::UDP => b"UDP,",

@@ -94,14 +94,8 @@ fn on_oom(_layout: Layout) -> ! {
     loop {}
 }
 
-mod gpio;
-mod nvic;
-mod rcc;
-mod register;
-mod timer;
 #[macro_use]
-mod usart;
-mod mmu;
+mod hal;
 
 mod kernel;
 
@@ -109,47 +103,19 @@ mod panic_handler;
 
 use alloc::string::String;
 
-fn timer_config() {
-    timer::Timer::new(timer::raw::TIMER_2)
-        .enable()
-        .enable_auto_reload_register()
-        .set_auto_reload_register(0xFFFF)
-        .set_prescaler(0xF)
-        .count_upward()
-        .into_clock_div_by_4()
-        .reset()
-        .enable_update_interrupt()
-        .start_count();
-}
-
-fn mmu_test() {
-    let mmu = mmu::Mmu::new();
-
-    print_hexa!(mmu.type_reg().read());
-    println!("");
-
-    print_hexa!(register::Register::new(0xE000_ED90 + 0x04).read());
-    println!("");
-}
-
 #[no_mangle]
 pub unsafe extern "C" fn main() {
-    rcc::Rcc::new().enable_hsi().sysclock_into_hsi();
-    let serial = usart::Usart::new_usb_serial(115200);
+    hal::rcc::Rcc::new().enable_hsi().sysclock_into_hsi();
+    // let serial = usart::Usart::new_usb_serial(115200);
     kernel::net::init();
     println!("\n");
-
-    mmu_test();
-    timer_config();
 
     let w = kernel::net::tcp::Tcp::new();
     w.connect(String::from("192.168.1.21"), String::from("8000"));
 
-    let wifi = usart::Usart::reopen_com(usart::raw::USART4);
-
     let mut i: u32 = 0;
 
-    wifi.write("AT+CWJAP=\"Livebox-092d\",\"wifieasy\"\r\n".as_bytes());
+    // wifi.write("AT+CWJAP=\"Livebox-092d\",\"wifieasy\"\r\n".as_bytes());
 
     loop {
         // if serial.has_received_char() {
@@ -159,18 +125,18 @@ pub unsafe extern "C" fn main() {
 
         if i == 400_000 {
             println!("");
-            wifi.write("AT+CIFSR\r\n".as_bytes());
+            // wifi.write("AT+CIFSR\r\n".as_bytes());
         }
 
         if i == 600_000 {
             println!("");
-            wifi.write("AT+CIPSTART=\"TCP\",\"192.168.1.21\",8000\r\n".as_bytes());
+            // wifi.write("AT+CIPSTART=\"TCP\",\"192.168.1.21\",8000\r\n".as_bytes());
         }
 
-        if wifi.has_received_char() {
-            let c = wifi.read_char();
-            serial.put_char(c);
-        }
+        // if wifi.has_received_char() {
+            // let c = wifi.read_char();
+            // serial.put_char(c);
+        // }
 
         i += 1;
     }

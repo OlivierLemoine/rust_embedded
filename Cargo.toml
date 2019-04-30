@@ -5,7 +5,7 @@ authors = ["olivier"]
 edition = "2018"
 
 [dependencies]
-# HAL = { path = "hal" }
+hal = { path = "hal" }
 
 [profile.dev]
 opt-level = 0
