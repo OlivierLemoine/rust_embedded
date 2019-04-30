@@ -1,4 +1,5 @@
 use super::at;
+use alloc::string::String;
 
 pub struct Tcp {
     connection: at::Connection,
@@ -11,11 +12,11 @@ impl Tcp {
         }
     }
 
-    // pub fn connect(&self, ip: String, port: String) {
-    //     self.connect(ip, port);
-    // }
+    pub fn connect(&self, ip: String, port: String) {
+        self.connection.connect_to(ip, port);
+    }
 
-    // pub fn send(&self, s: String) {
-    //     self.send(s);
-    // }
+    pub fn send(&self, s: String) {
+        self.connection.send(s);
+    }
 }
