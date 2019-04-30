@@ -132,4 +132,19 @@ impl<COUNTER> Timer<states::Enable, COUNTER> {
         self.base.update_generator().set(true);
         self
     }
+
+    pub fn counter_value(&self) -> u16 {
+        self.base.counter().read()
+    }
+}
+
+impl Timer<states::Enable, counter::On> {
+    pub fn stop_count(self) -> Timer<states::Enable, counter::Off>{
+        self.base.count().set(false);
+        Timer {
+            base: self.base,
+            state: states::Enable,
+            counter: counter::Off,
+        }
+    }
 }

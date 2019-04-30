@@ -11,7 +11,22 @@ pub mod timer;
 pub mod usart;
 pub mod mmu;
 
-pub fn init(){
+pub fn init() {
     rcc::Rcc::new().enable_hsi().sysclock_into_hsi();
     usart::Usart::new_usb_serial(115200);
+}
+
+pub fn delay(ms: u32) {
+    let mut t = timer::Timer::new(timer::raw::TIMER_7)
+        .enable()
+        .count_downward()
+        .into_clock_div_by_1()
+        .set_prescaler(16_000)
+        .into_one_pulse_mode()
+        .reset()
+        .start_count();
+    for i in 0..ms {
+        t = t.reset();
+        while t.counter_value() > 0 {}
+    }
 }

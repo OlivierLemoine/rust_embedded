@@ -16,10 +16,10 @@ pub unsafe extern "C" fn main() {
     hal::init();
     println!("\n");
 
+    kernel::net::wifi::connect(String::from("Livebox-092d"), String::from("wifieasy"));
+
     let socket = kernel::net::tcp::Tcp::new();
     socket.connect(String::from("192.168.1.21"), String::from("8000"));
-
-    // wifi.write("AT+CWJAP=\"Livebox-092d\",\"wifieasy\"\r\n".as_bytes());
 
     loop {}
 }

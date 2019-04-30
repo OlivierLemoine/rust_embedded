@@ -8,6 +8,7 @@ use alloc::vec::Vec;
 static mut AT_HANDLER: ATHandler = ATHandler {
     connections: None,
     data_in: None,
+    wifi_in: None,
 };
 
 pub enum ConnectionType {
@@ -23,6 +24,7 @@ struct __Connection {
 struct ATHandler {
     connections: Option<Vec<__Connection>>,
     data_in: Option<String>,
+    wifi_in: Option<String>,
 }
 
 pub type ConnectionFd = usize;
@@ -131,6 +133,7 @@ pub fn init() {
     unsafe {
         AT_HANDLER.connections = Some(Vec::with_capacity(0));
         AT_HANDLER.data_in = Some(String::from(""));
+        AT_HANDLER.wifi_in = Some(String::from(""));
     }
 }
 
