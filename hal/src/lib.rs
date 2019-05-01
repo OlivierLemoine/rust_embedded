@@ -1,6 +1,6 @@
 #![no_std]
 
-#![feature(impl_trait_in_bindings)]
+// #![feature(impl_trait_in_bindings)]
 
 pub mod gpio;
 pub mod nvic;
@@ -11,9 +11,16 @@ pub mod timer;
 pub mod usart;
 pub mod mmu;
 
+fn on_cb(c: char) {
+    usart::Usart::reopen_com(usart::raw::USART2).put_char(c as u8);
+}
+
 pub fn init() {
     rcc::Rcc::new().enable_hsi().sysclock_into_hsi();
-    usart::Usart::new_usb_serial(115200);
+    usart::Usart::new_usb_serial(115200)
+        .enable_receive_interrupt()
+        .set_on_received_callback(on_cb as *mut fn(char))
+        .ready_usart();
 }
 
 pub fn delay(ms: u32) {
@@ -25,7 +32,7 @@ pub fn delay(ms: u32) {
         .into_one_pulse_mode()
         .reset()
         .start_count();
-    for i in 0..ms {
+    for _ in 0..ms {
         t = t.reset();
         while t.counter_value() > 0 {}
     }

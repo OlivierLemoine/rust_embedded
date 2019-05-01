@@ -10,7 +10,7 @@ pub const USART4: UsartAddr = 0x4000_4C00;
 pub const USART5: UsartAddr = 0x4000_5000;
 
 pub struct Usart {
-    base: UsartAddr,
+    pub base: UsartAddr,
 }
 
 impl Usart {

@@ -1,6 +1,7 @@
 #![no_std]
 #![allow(dead_code)]
 
+#![feature(alloc)]
 extern crate alloc;
 extern crate allocator;
 #[macro_use]

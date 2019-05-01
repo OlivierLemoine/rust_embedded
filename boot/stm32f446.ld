@@ -37,9 +37,6 @@ SECTIONS
         . = ALIGN(4);
     } >FLASH
 
-    __exidx_start = .;
-    __exidx_end = .;
-
     /* The 'rodata' section contains read-only data,
     * constants, strings, information that won't change. */
     .rodata :
@@ -88,4 +85,9 @@ SECTIONS
         . = ALIGN(4);
         _esystem_ram = .;
     } >RAM
+
+    .ARM.extab : { *(.ARM.extab* .gnu.linkonce.armextab.*) } >FLASH
+    __exidx_start = .;
+    .ARM.exidx : { *(.ARM.exidx* .gnu.linkonce.armexidx.*) } >FLASH
+    __exidx_end = .;
 }

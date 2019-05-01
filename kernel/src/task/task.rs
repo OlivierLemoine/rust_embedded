@@ -1,6 +1,3 @@
-use alloc::boxed::Box;
-use core::ptr;
-
 pub struct Task {
     id: u32,
     ctx: [u32; 16],

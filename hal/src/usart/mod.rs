@@ -102,7 +102,7 @@ impl Usart<Undefined, Undefined, Undefined> {
         }
     }
 
-    pub fn new_usb_serial(baud: u32) -> Usart<states::Enable, mode::RxTx, usart_state::Ready> {
+    pub fn new_usb_serial(baud: u32) -> Usart<states::Enable, mode::RxTx, usart_state::Waiting> {
         gpio::Gpio::new_usb_serial_pins();
         Usart::new(raw::USART2)
             .set_active()
@@ -111,7 +111,6 @@ impl Usart<Undefined, Undefined, Undefined> {
             .into_no_parity()
             .into_8_bit_message()
             .set_baud_rate(baud)
-            .ready_usart()
     }
 
     pub fn reopen_com(
@@ -229,7 +228,18 @@ impl<MODE> Usart<states::Enable, MODE, usart_state::Waiting> {
         self,
         cb: *mut fn(char) -> (),
     ) -> Usart<states::Enable, MODE, usart_state::Waiting> {
-        unsafe { usart_handlers::USART4_HANDLER = cb };
+        match self.base.base {
+            raw::USART1 => {}
+            raw::USART2 => {
+                unsafe { usart_handlers::USART2_HANDLER = cb };
+            }
+            raw::USART3 => {}
+            raw::USART4 => {
+                unsafe { usart_handlers::UART4_HANDLER = cb };
+            }
+            raw::USART5 => {}
+            _ => {}
+        }
         self
     }
 }

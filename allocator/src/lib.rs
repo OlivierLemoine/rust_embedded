@@ -6,18 +6,17 @@ use core::alloc::{GlobalAlloc, Layout};
 use core::ptr;
 
 extern "C" {
-    static _ssystem_ram: usize;
+    static mut _ebss: u32;
+}
+
+fn get_heap_start() -> *mut u32 {
+    let a = unsafe { &mut _ebss };
+    a as *mut u32
 }
 
 macro_rules! isFree {
     ($ptr:expr) => {
         (ptr::read($ptr) & 0x8000_0000) == 0
-    };
-}
-
-macro_rules! setFree {
-    ($ptr:expr) => {
-        ptr::write($ptr, ptr::read($ptr) & 0x7FFF_FFFF)
     };
 }
 
@@ -27,21 +26,18 @@ macro_rules! next {
     };
 }
 
-macro_rules! setOccupied {
-    ($ptr:expr) => {
-        ptr::write($ptr, ptr::read($ptr) | 0x8000_0000)
-    };
-}
-
 macro_rules! getSize {
     ($ptr:expr) => {
         ptr::read($ptr) & 0x7FFF_FFFF
     };
 }
 
-macro_rules! setSize {
-    ($ptr:expr, $value:expr) => {
-        ptr::write($ptr, ptr::read($ptr) | (0x7FFF_FFFF & $value))
+macro_rules! set {
+    ($ptr:expr, $isOcc:expr, $size:expr) => {
+        ptr::write(
+            $ptr,
+            if $isOcc == true { 0x8000_0000 } else { 0 } | ($size & 0x7FFF_FFFF),
+        )
     };
 }
 
@@ -51,44 +47,54 @@ macro_rules! enoughSize {
     };
 }
 
-struct Alloc {}
+struct Alloc {
+    size: usize,
+}
 
 unsafe impl Sync for Alloc {}
 
 unsafe impl GlobalAlloc for Alloc {
     unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
-        let mut ptr = _ssystem_ram as *mut u32;
         let size = layout.size() as u32;
+        let mut p = get_heap_start();
         loop {
-            if isFree!(ptr) && enoughSize!(ptr, size) {
-                setSize!(ptr, size);
-                setSize!(next!(ptr), getSize!(ptr) - size - 4);
-                setFree!(next!(ptr));
-                setOccupied!(ptr);
+            if isFree!(p) && enoughSize!(p, size) {
+                let prev_size = getSize!(p);
+                set!(p, true, size);
+                let next_p = next!(p);
+                set!(next_p, false, prev_size - size - 4);
                 break;
             }
-            ptr = next!(ptr);
+            p = next!(p);
         }
-        ptr.offset(4) as *mut u8
+        let res = p.offset(1);
+        res as *mut u8
     }
 
-    unsafe fn dealloc(&self, ptr: *mut u8, _l: Layout) {
-        let header = ptr.offset(-4) as *mut u32;
+    unsafe fn dealloc(&self, p: *mut u8, _l: Layout) {
+        let tmp = p as *mut u32;
+        let header = tmp.offset(-1);
 
         let next_header = next!(header);
 
         if isFree!(next_header) {
             let total_size = getSize!(next_header) + getSize!(header) + 4;
-            setSize!(header, total_size);
+            set!(header, false, total_size);
+        } else {
+            set!(header, false, getSize!(header));
         }
-        setFree!(header);
     }
 }
 
 #[global_allocator]
-static HEAP: Alloc = Alloc {};
+static HEAP: Alloc = Alloc { size: 0x8000 };
 
 #[alloc_error_handler]
 fn on_oom(_layout: Layout) -> ! {
-    loop {}
+    panic!("");
+}
+
+pub fn init() {
+    let p = get_heap_start();
+    unsafe { ptr::write(p, HEAP.size as u32) };
 }

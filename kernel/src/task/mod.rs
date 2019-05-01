@@ -1,4 +1,4 @@
-use alloc::{vec::Vec, boxed::Box};
+use alloc::vec::Vec;
 
 mod task;
 
@@ -14,6 +14,4 @@ pub fn init() {
     unsafe { SCHEDULER.tasks = Some(Vec::new()) };
 }
 
-pub fn new_thread(f: impl Fn() -> ()){
-    
-}
+pub fn new_thread(f: impl Fn() -> ()) {}
