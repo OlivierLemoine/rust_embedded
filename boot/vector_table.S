@@ -85,7 +85,7 @@ vtable:
     .word     SDIO_IRQHandler                   /* SDIO                         */                   
     .word     TIM5_IRQHandler                   /* TIM5                         */                   
     .word     SPI3_IRQHandler                   /* SPI3                         */                   
-    @ .word     UART4_IRQHandler                  /* UART4                        */                   
+    .word     UART4_IRQHandler                  /* UART4                        */                   
     .word     UART5_IRQHandler                  /* UART5                        */                   
     .word     TIM6_DAC_IRQHandler               /* TIM6 and DAC1&2 underrun errors */                   
     .word     TIM7_IRQHandler                   /* TIM7                         */

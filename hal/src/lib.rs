@@ -17,6 +17,9 @@ fn on_cb(c: char) {
 
 pub fn init() {
     rcc::Rcc::new().enable_hsi().sysclock_into_hsi();
+    let mut n = nvic::NVIC::new();
+    n.tim2_set_enabled().set(true);
+    n.usart2_set_enabled().set(true);
     usart::Usart::new_usb_serial(115200)
         .enable_receive_interrupt()
         .set_on_received_callback(on_cb as *mut fn(char))

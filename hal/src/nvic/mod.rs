@@ -17,4 +17,8 @@ impl NVIC {
     pub fn tim2_set_enabled(&mut self) -> Bit {
         Bit::new(Register::new(0xE000_E100 /*+ 0*/), 28)
     }
+
+    pub fn usart2_set_enabled(&mut self) -> Bit {
+        Bit::new(Register::new(0xE000_E100 + 4), 6)
+    }
 }
