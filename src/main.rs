@@ -24,6 +24,8 @@ pub unsafe extern "C" fn main() {
         print_char!(_c);
     }));
 
+    kernel::net::wifi::list_available_ap();
+
     // kernel::net::wifi::connect(String::from("Livebox-092d"), String::from("wifieasy"));
 
     // let socket = kernel::net::tcp::Tcp::new();

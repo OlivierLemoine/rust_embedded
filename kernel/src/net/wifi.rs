@@ -11,3 +11,8 @@ pub fn connect(ssid: String, pwd: String) {
     u.write(pwd.as_bytes());
     u.write("\"\r\n".as_bytes());
 }
+
+pub fn list_available_ap() {
+    let u = Usart::reopen_com(USART4);
+    u.write("AT+CWLAP\r\n".as_bytes());
+}

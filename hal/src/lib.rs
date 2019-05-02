@@ -3,19 +3,14 @@
 // #![feature(impl_trait_in_bindings)]
 
 pub mod gpio;
+pub mod i2c;
+pub mod mmu;
 pub mod nvic;
 pub mod rcc;
 pub mod register;
 pub mod timer;
 #[macro_use]
 pub mod usart;
-pub mod mmu;
-
-// pub fn init() {
-//     rcc::Rcc::new().enable_hsi().sysclock_into_hsi();
-//     let mut n = nvic::NVIC::new();
-//     n.tim2_set_enabled().set(true);
-// }
 
 pub fn delay(ms: u32) {
     let mut t = timer::Timer::new(timer::raw::TIMER_7)

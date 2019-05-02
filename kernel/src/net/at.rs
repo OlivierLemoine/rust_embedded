@@ -173,6 +173,7 @@ pub fn create(c_type: ConnectionType) -> ConnectionFd {
 }
 
 fn add_new_char(c: char) {
+    print_char!(c);
     match unsafe { AT_HANDLER.state } {
         -2 => {
             let s: &mut String = unsafe { &mut AT_HANDLER }.get_wifi_in_mut();

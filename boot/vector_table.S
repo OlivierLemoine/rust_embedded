@@ -434,5 +434,5 @@ vtable:
 Default_Handler:
     abort:
     default_interrupt_loop:
-        B default_interrupt_loop
+        B default_handler_print
 .size Default_Handler, .-Default_Handler

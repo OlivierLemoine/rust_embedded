@@ -220,6 +220,7 @@ impl<MODE> Usart<states::Enable, MODE, usart_state::Waiting> {
     pub fn enable_receive_interrupt(self) -> Usart<states::Enable, MODE, usart_state::Waiting> {
         match self.base.base {
             raw::USART2 => super::nvic::NVIC::new().usart2_set_enabled().set(true),
+            raw::USART4 => super::nvic::NVIC::new().usart4_set_enabled().set(true),
             _ => {}
         }
         self.base
