@@ -8,6 +8,7 @@ edition = "2018"
 hal = { path = "hal" }
 allocator = { path = "allocator" }
 kernel = { path = "kernel" }
+hal_alloc = { path = "hal_alloc" }
 
 [profile.dev]
 opt-level = 0

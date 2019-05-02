@@ -5,18 +5,23 @@ extern crate alloc;
 extern crate allocator;
 #[macro_use]
 extern crate hal;
+extern crate hal_alloc;
 extern crate kernel;
 
 mod panic_handler;
 
+
+use alloc::boxed::Box;
 use alloc::string::String;
 
 #[no_mangle]
 pub unsafe extern "C" fn main() {
-    hal::init();
+    hal::rcc::Rcc::new().enable_hsi().sysclock_into_hsi();
     allocator::init();
     kernel::init();
     println!("\n");
+
+    hal_alloc::setup_usart2(Box::new(|_c| {}));
 
     // kernel::net::wifi::connect(String::from("Livebox-092d"), String::from("wifieasy"));
 

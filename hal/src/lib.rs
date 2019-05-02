@@ -11,20 +11,11 @@ pub mod timer;
 pub mod usart;
 pub mod mmu;
 
-fn on_cb(c: char) {
-    usart::Usart::reopen_com(usart::raw::USART2).put_char(c as u8);
-}
-
-pub fn init() {
-    rcc::Rcc::new().enable_hsi().sysclock_into_hsi();
-    let mut n = nvic::NVIC::new();
-    n.tim2_set_enabled().set(true);
-    n.usart2_set_enabled().set(true);
-    usart::Usart::new_usb_serial(115200)
-        .enable_receive_interrupt()
-        .set_on_received_callback(on_cb as *mut fn(char))
-        .ready_usart();
-}
+// pub fn init() {
+//     rcc::Rcc::new().enable_hsi().sysclock_into_hsi();
+//     let mut n = nvic::NVIC::new();
+//     n.tim2_set_enabled().set(true);
+// }
 
 pub fn delay(ms: u32) {
     let mut t = timer::Timer::new(timer::raw::TIMER_7)

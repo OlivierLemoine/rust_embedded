@@ -52,14 +52,18 @@ INCLUDE =
 all: $(TARGET).elf
 %.o: %.S
 	$(CC) -mfloat-abi=hard $(DEBUG) $(ASFLAGS) $< -o $@
-%.o: %.rs lib_kernel
-	rustc $(RUST_FLAGS) $(RUST_FLAGS_BIN) --extern allocator=./allocator/src/lib.rlib --extern hal=./hal/src/lib.rlib --extern kernel=./kernel/src/lib.rlib $< -o $@ 
+%.o: %.rs lib_kernel lib_hal_alloc
+	rustc $(RUST_FLAGS) $(RUST_FLAGS_BIN) --extern allocator=./allocator/src/lib.rlib --extern hal=./hal/src/lib.rlib --extern kernel=./kernel/src/lib.rlib --extern hal_alloc=./hal_alloc/src/lib.rlib $< -o $@ 
 $(TARGET).elf: $(OBJS)
 	$(CC) -mfloat-abi=hard $^ $(LFLAGS) -o $@
 	
 .PHONY: lib_kernel
 lib_kernel: lib_hal lib_allocator
 	rustc $(RUST_FLAGS) $(RUST_FLAGS_LIB) --crate-name=kernel --extern allocator=./allocator/src/lib.rlib --extern hal=./hal/src/lib.rlib ./kernel/src/lib.rs -o ./kernel/src/lib.rlib
+
+.PHONY: lib_hal_alloc
+lib_hal_alloc: lib_hal lib_allocator
+	rustc $(RUST_FLAGS) $(RUST_FLAGS_LIB) --crate-name=hal_alloc --extern allocator=./allocator/src/lib.rlib --extern hal=./hal/src/lib.rlib ./hal_alloc/src/lib.rs -o ./hal_alloc/src/lib.rlib
 
 .PHONY: lib_hal
 lib_hal:
