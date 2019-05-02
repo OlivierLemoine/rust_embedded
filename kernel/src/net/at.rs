@@ -145,6 +145,8 @@ pub fn init() {
         .into_no_pull()
         .into_push_pull();
 
+    let tmp = (&(add_new_char as *const fn(char)) as *const *const fn(char)) as *const fn(char);
+
     usart::Usart::new(usart::raw::USART4)
         .set_active()
         .into_rxtx()
@@ -152,7 +154,7 @@ pub fn init() {
         .into_no_parity()
         .into_1_stop_bit()
         .enable_receive_interrupt()
-        .set_on_received_callback(add_new_char as *mut fn(char))
+        .set_on_received_callback(tmp)
         .set_baud_rate(115200)
         .ready_usart();
 

@@ -237,7 +237,7 @@ impl<MODE> Usart<states::Enable, MODE, usart_state::Waiting> {
 
     pub fn set_on_received_callback(
         self,
-        cb: *mut fn(char) -> (),
+        cb: *const fn(char) -> (),
     ) -> Usart<states::Enable, MODE, usart_state::Waiting> {
         match self.base.base {
             raw::USART1 => {}

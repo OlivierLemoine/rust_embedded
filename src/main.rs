@@ -19,7 +19,6 @@ pub unsafe extern "C" fn main() {
     hal::rcc::Rcc::new().enable_hsi().sysclock_into_hsi();
     allocator::init();
     kernel::init();
-    println!("\n");
 
     hal_alloc::setup_usart2(Box::new(|_c| {
         print_char!(_c);

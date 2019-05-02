@@ -42,6 +42,10 @@ impl Usart {
         Bit::new(Register::new(self.base), 5)
     }
 
+    pub fn overrun_error(&self) -> Bit {
+        Bit::new(Register::new(self.base), 3)
+    }
+
     pub fn data(&self) -> Register8 {
         Register8::new(self.base + 0x04)
     }
