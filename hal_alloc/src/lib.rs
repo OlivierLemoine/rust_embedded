@@ -1,6 +1,5 @@
 #![no_std]
 
-
 extern crate alloc;
 extern crate allocator;
 extern crate hal;

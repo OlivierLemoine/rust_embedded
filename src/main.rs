@@ -21,7 +21,9 @@ pub unsafe extern "C" fn main() {
     kernel::init();
     println!("\n");
 
-    hal_alloc::setup_usart2(Box::new(|_c| {}));
+    hal_alloc::setup_usart2(Box::new(|_c| {
+        print_char!(_c);
+    }));
 
     // kernel::net::wifi::connect(String::from("Livebox-092d"), String::from("wifieasy"));
 
