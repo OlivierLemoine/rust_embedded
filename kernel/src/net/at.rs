@@ -1,14 +1,15 @@
 use hal::gpio;
 use hal::usart;
 
-
-use alloc::boxed::Box;
 use alloc::string::String;
 use alloc::vec::Vec;
+
 static mut AT_HANDLER: ATHandler = ATHandler {
     connections: None,
     data_in: None,
     wifi_in: None,
+    state: -1,
+    size_to_read: 0,
 };
 
 pub enum ConnectionType {
@@ -19,12 +20,15 @@ pub enum ConnectionType {
 struct __Connection {
     c_type: ConnectionType,
     id: usize,
+    data: String,
 }
 
 struct ATHandler {
     connections: Option<Vec<__Connection>>,
     data_in: Option<String>,
     wifi_in: Option<String>,
+    state: i32,
+    size_to_read: i32,
 }
 
 pub type ConnectionFd = usize;
@@ -74,11 +78,29 @@ impl ATHandler {
             None => panic!("Initialize AT before use"),
         }
     }
+
+    pub fn get_wifi_in(&self) -> &String {
+        match &self.wifi_in {
+            Some(v) => v,
+            None => panic!("Initialize AT before use"),
+        }
+    }
+
+    pub fn get_wifi_in_mut(&mut self) -> &mut String {
+        match &mut self.wifi_in {
+            Some(v) => v,
+            None => panic!("Initialize AT before use"),
+        }
+    }
 }
 
 impl __Connection {
     pub fn new(c_type: ConnectionType, id: usize) -> __Connection {
-        __Connection { c_type, id }
+        __Connection {
+            c_type,
+            id,
+            data: String::new(),
+        }
     }
 
     pub fn connect_to(&self, ip: String, port: String) {
@@ -100,6 +122,10 @@ impl __Connection {
         u.write("AT+CIPSENDBUF=".as_bytes());
         u.write_dec(s.len() as u32);
         u.write(s.as_bytes());
+    }
+
+    fn push_c(&mut self, c: char) {
+        self.data.push(c);
     }
 }
 
@@ -145,9 +171,36 @@ pub fn create(c_type: ConnectionType) -> ConnectionFd {
 }
 
 fn add_new_char(c: char) {
-    let s: &mut String = unsafe { &mut AT_HANDLER }.get_data_in_mut();
-    s.push(c);
-    let u = hal::usart::Usart::reopen_com(hal::usart::raw::USART2);
-    u.write(s.as_bytes());
-    u.put_char(b'\n');
+    match unsafe { AT_HANDLER.state } {
+        -2 => {
+            let s: &mut String = unsafe { &mut AT_HANDLER }.get_wifi_in_mut();
+            s.push(c);
+            if s.ends_with("OK") {
+                unsafe { AT_HANDLER.state = -1 };
+            } else if s.ends_with("ERROR") {
+                unsafe { AT_HANDLER.state = -1 };
+            }
+        }
+        -1 => {
+            if c == '\n' {
+                match unsafe { &AT_HANDLER }.get_data_in().as_str() {
+                    "AT+CWLAP" => {
+                        unsafe { AT_HANDLER.state = -2 };
+                    }
+                    x => if x.starts_with("+IPD") {},
+                }
+            } else if c == ':' {
+            } else {
+                unsafe { &mut AT_HANDLER }.get_data_in_mut().push(c);
+            }
+        }
+        x => {
+            let v: &mut Vec<__Connection> = unsafe { &mut AT_HANDLER }.get_connection_mut();
+            v[x as usize].push_c(c);
+            unsafe { AT_HANDLER.size_to_read -= 1 };
+            if unsafe { AT_HANDLER.size_to_read } == 0 {
+                unsafe { AT_HANDLER.state = -1 };
+            }
+        }
+    }
 }

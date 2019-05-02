@@ -1,16 +1,6 @@
-/* Label for the program's entry point */
 ENTRY(Reset_Handler)
 
-/* Define the end of RAM and limit of stack memory */
-/* (4KB SRAM on the STM32F031x6 line, 4096 = 0x1000) */
-/* (RAM starts at address 0x20000000) */
 _estack = 0x20020000;
-
-/* Set minimum size for stack and dynamic memory. */
-/* (The linker will generate an error if there is
- * less than this much RAM leftover.) */
-/* (1KB) */
-_Min_Leftover_RAM = 0x400;
 
 MEMORY
 {
@@ -20,7 +10,6 @@ MEMORY
 
 SECTIONS
 {
-    /* The vector table goes at the start of flash. */
     .vector_table :
     {
         . = ALIGN(4);
@@ -28,32 +17,31 @@ SECTIONS
         . = ALIGN(4);
     } >FLASH
 
-    /* The 'text' section contains the main program code. */
     .text :
     {
         . = ALIGN(4);
+        _text = .;
         *(.text)
         *(.text*)
-        . = ALIGN(4);
-    } >FLASH
-
-    /* The 'rodata' section contains read-only data,
-    * constants, strings, information that won't change. */
-    .rodata :
-    {
-        . = ALIGN(4);
         *(.rodata)
         *(.rodata*)
+        *(.glue_7)
+        *(.glue_7t)
+        _etext = .;
         . = ALIGN(4);
     } >FLASH
 
-    /* The 'data' section is space set aside in RAM for
-    * things like variables, which can change. */
+    .ARM.extab : { *(.ARM.extab* .gnu.linkonce.armextab.*) } >FLASH
+    .ARM : {
+        __exidx_start = .;
+        *(.ARM.exidx*)
+        __exidx_end = .;
+    } >FLASH
+    
     _sidata = .;
     .data : AT(_sidata)
     {
         . = ALIGN(4);
-        /* Mark start/end locations for the 'data' section. */
         _sdata = .;
         *(.data)
         *(.data*)
@@ -61,13 +49,9 @@ SECTIONS
         . = ALIGN(4);
     } >RAM
 
-    /* The 'bss' section is similar to the 'data' section,
-    * but its space is initialized to all 0s at the
-    * start of the program. */
     .bss :
     {
         . = ALIGN(4);
-        /* Also mark the start/end of the BSS section. */
         _sbss = .;
         *(.bss)
         *(.bss*)
@@ -81,13 +65,23 @@ SECTIONS
     {
         . = ALIGN(4);
         _ssystem_ram = .;
-        . = . + _Min_Leftover_RAM;
         . = ALIGN(4);
         _esystem_ram = .;
     } >RAM
 
-    .ARM.extab : { *(.ARM.extab* .gnu.linkonce.armextab.*) } >FLASH
-    __exidx_start = .;
-    .ARM.exidx : { *(.ARM.exidx* .gnu.linkonce.armexidx.*) } >FLASH
-    __exidx_end = .;
+    .ARM : 
+    {
+        __exidx_start = .;
+        *(.ARM.exidx*)
+        __exidx_end = .;
+    } >FLASH
+
+    /DISCARD/ :
+    {
+        libc.a ( * )
+        libm.a ( * )
+        libgcc.a ( * )
+    }
+
+    .ARM.attributes 0 : { *(.ARM.attributes) }
 }
