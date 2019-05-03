@@ -11,6 +11,7 @@ static mut AT_HANDLER: ATHandler = ATHandler {
     data_in: None,
     ptr_write: 0,
     ptr_read: 0,
+    tmp_parse: None,
     wifi_in: None,
     state: -1,
     size_to_read: 0,
@@ -32,6 +33,7 @@ struct ATHandler {
     data_in: Option<[char; ESP_BUFFER_SIZE]>,
     ptr_write: usize,
     ptr_read: usize,
+    tmp_parse: Option<String>,
     wifi_in: Option<String>,
     state: i32,
     size_to_read: i32,
@@ -85,6 +87,20 @@ impl ATHandler {
 
     pub fn get_data_in_mut(&mut self) -> &mut [char] {
         match &mut self.data_in {
+            Some(v) => v,
+            None => panic!("Initialize AT before use"),
+        }
+    }
+
+    pub fn get_tmp_parse(&self) -> &String {
+        match &self.tmp_parse {
+            Some(v) => v,
+            None => panic!("Initialize AT before use"),
+        }
+    }
+
+    pub fn get_tmp_parse_mut(&mut self) -> &mut String {
+        match &mut self.tmp_parse {
             Some(v) => v,
             None => panic!("Initialize AT before use"),
         }
@@ -173,6 +189,7 @@ pub fn init() {
         AT_HANDLER.connections = Some(Vec::with_capacity(0));
         AT_HANDLER.data_in = Some(['\0'; ESP_BUFFER_SIZE]);
         AT_HANDLER.wifi_in = Some(String::from(""));
+        AT_HANDLER.tmp_parse = Some(String::from(""));
     }
 }
 
@@ -203,12 +220,17 @@ unsafe fn dispatch() {
 
             -1 => {
                 if c == '\n' {
-                    match c {
+                    match AT_HANDLER.get_tmp_parse().as_str() {
+                        "AT+CWLAP" => {
+                            AT_HANDLER.state = -2;
+                            AT_HANDLER.tmp_parse = Some(String::new());
+                        }
                         _ => {}
 
                     }
                 } else if c == ':' {
                 } else {
+                    AT_HANDLER.get_tmp_parse_mut().push(c);
                 }
             }
             x => {
