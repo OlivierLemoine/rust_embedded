@@ -4,9 +4,13 @@ use hal::usart;
 use alloc::string::String;
 use alloc::vec::Vec;
 
+const ESP_BUFFER_SIZE: usize = 128;
+
 static mut AT_HANDLER: ATHandler = ATHandler {
     connections: None,
     data_in: None,
+    ptr_write: 0,
+    ptr_read: 0,
     wifi_in: None,
     state: -1,
     size_to_read: 0,
@@ -25,7 +29,9 @@ struct __Connection {
 
 struct ATHandler {
     connections: Option<Vec<__Connection>>,
-    data_in: Option<String>,
+    data_in: Option<[char; ESP_BUFFER_SIZE]>,
+    ptr_write: usize,
+    ptr_read: usize,
     wifi_in: Option<String>,
     state: i32,
     size_to_read: i32,
@@ -36,6 +42,7 @@ pub type ConnectionFd = usize;
 pub trait Connection {
     fn connect_to(&self, ip: String, port: String);
     fn send(&self, msg: String);
+    fn read(&self) -> String;
 }
 
 impl Connection for ConnectionFd {
@@ -47,6 +54,10 @@ impl Connection for ConnectionFd {
     fn send(&self, msg: String) {
         let tmp = &unsafe { &AT_HANDLER }.get_connection()[*self];
         tmp.send(msg);
+    }
+
+    fn read(&self) -> String {
+        String::new()
     }
 }
 
@@ -65,14 +76,14 @@ impl ATHandler {
         }
     }
 
-    pub fn get_data_in(&self) -> &String {
+    pub fn get_data_in(&self) -> &[char] {
         match &self.data_in {
             Some(v) => v,
             None => panic!("Initialize AT before use"),
         }
     }
 
-    pub fn get_data_in_mut(&mut self) -> &mut String {
+    pub fn get_data_in_mut(&mut self) -> &mut [char] {
         match &mut self.data_in {
             Some(v) => v,
             None => panic!("Initialize AT before use"),
@@ -160,7 +171,7 @@ pub fn init() {
 
     unsafe {
         AT_HANDLER.connections = Some(Vec::with_capacity(0));
-        AT_HANDLER.data_in = Some(String::from(""));
+        AT_HANDLER.data_in = Some(['\0'; ESP_BUFFER_SIZE]);
         AT_HANDLER.wifi_in = Some(String::from(""));
     }
 }
@@ -172,38 +183,43 @@ pub fn create(c_type: ConnectionType) -> ConnectionFd {
     id
 }
 
-fn add_new_char(c: char) {
+unsafe fn add_new_char(c: char) {
     print_char!(c);
-    match unsafe { AT_HANDLER.state } {
-        -2 => {
-            let s: &mut String = unsafe { &mut AT_HANDLER }.get_wifi_in_mut();
-            s.push(c);
-            if s.ends_with("OK") {
-                unsafe { AT_HANDLER.state = -1 };
-            } else if s.ends_with("ERROR") {
-                unsafe { AT_HANDLER.state = -1 };
-            }
-        }
-        -1 => {
-            if c == '\n' {
-                match unsafe { &AT_HANDLER }.get_data_in().as_str() {
-                    "AT+CWLAP" => {
-                        unsafe { AT_HANDLER.state = -2 };
-                    }
-                    x => if x.starts_with("+IPD") {},
+    AT_HANDLER.ptr_write += 1 % ESP_BUFFER_SIZE;
+    AT_HANDLER.get_data_in_mut()[AT_HANDLER.ptr_write] = c;
+}
+
+unsafe fn dispatch() {
+    while AT_HANDLER.ptr_write != AT_HANDLER.ptr_read {
+        let c = AT_HANDLER.get_data_in_mut()[AT_HANDLER.ptr_read];
+        match AT_HANDLER.state {
+            -2 => {
+                let s: &mut String = &mut AT_HANDLER.get_wifi_in_mut();
+                s.push(c);
+                if s.ends_with("OK") || s.ends_with("ERROR") {
+                    AT_HANDLER.state = -1;
                 }
-            } else if c == ':' {
-            } else {
-                unsafe { &mut AT_HANDLER }.get_data_in_mut().push(c);
+            }
+
+            -1 => {
+                if c == '\n' {
+                    match c {
+                        _ => {}
+
+                    }
+                } else if c == ':' {
+                } else {
+                }
+            }
+            x => {
+                let v: &mut Vec<__Connection> = &mut AT_HANDLER.get_connection_mut();
+                v[x as usize].push_c(c);
+                AT_HANDLER.size_to_read -= 1;
+                if AT_HANDLER.size_to_read == 0 {
+                    AT_HANDLER.state = -1;
+                }
             }
         }
-        x => {
-            let v: &mut Vec<__Connection> = unsafe { &mut AT_HANDLER }.get_connection_mut();
-            v[x as usize].push_c(c);
-            unsafe { AT_HANDLER.size_to_read -= 1 };
-            if unsafe { AT_HANDLER.size_to_read } == 0 {
-                unsafe { AT_HANDLER.state = -1 };
-            }
-        }
+        AT_HANDLER.ptr_read += 1 % ESP_BUFFER_SIZE;
     }
 }
