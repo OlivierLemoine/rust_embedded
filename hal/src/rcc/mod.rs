@@ -4,6 +4,26 @@ pub mod raw;
 
 pub const HSI_SPEED: u32 = 16_000_000;
 
+static mut PLL_M: u32 = 1;
+static mut PLL_N: u32 = 1;
+static mut PLL_P: u32 = 1;
+static mut PLL_Q: u32 = 1;
+static mut PLL_R: u32 = 1;
+
+static mut SYS_CLOCK_SPEED: u32 = 1;
+
+static mut AHB_PRESC: u32 = 1;
+static mut APB1_PRESC: u32 = 1;
+static mut APB2_PRESC: u32 = 1;
+
+static mut AHB_SPEED: u32 = 1;
+static mut APB1_SPEED: u32 = 1;
+static mut APB2_SPEED: u32 = 1;
+
+pub fn get_usart_speed() -> u32 {
+    unsafe { APB1_SPEED }
+}
+
 pub mod pll_state {
     pub struct On;
     pub struct Off;
@@ -13,9 +33,6 @@ pub struct Rcc<STATE> {
     base: raw::Rcc,
 
     pll_state: STATE,
-
-    pll_clock_input_speed: u32,
-    vco_clock_speed: u32,
 }
 
 impl Rcc<pll_state::Off> {
@@ -24,9 +41,6 @@ impl Rcc<pll_state::Off> {
             base: raw::Rcc::new(),
 
             pll_state: pll_state::Off,
-
-            pll_clock_input_speed: HSI_SPEED,
-            vco_clock_speed: 0,
         }
     }
 
@@ -35,13 +49,51 @@ impl Rcc<pll_state::Off> {
     }
 
     pub fn enable_pll(self) -> Result<Rcc<pll_state::On>, bool> {
+        let vco_in = HSI_SPEED / unsafe { PLL_M };
+        if vco_in < 1_000_000 || vco_in > 2_000_000 {
+            return Err(false);
+        }
+
+        let vco_out = vco_in * unsafe { PLL_N };
+        if vco_out <= 100_000_000 || vco_out > 432_000_000 {
+            return Err(false);
+        }
+
+        let usb_otg_fs = vco_out / unsafe { PLL_Q };
+        if usb_otg_fs != 48_000_000 {
+            return Err(false);
+        }
+
+        let pll_out = vco_out / unsafe { PLL_P };
+        if pll_out > 180_000_000 {
+            return Err(false);
+        }
+
+        unsafe { SYS_CLOCK_SPEED = pll_out };
+
+        let ahb_out = pll_out / unsafe { AHB_PRESC };
+
+        unsafe { AHB_SPEED = pll_out };
+
+        let apb1_out = ahb_out / unsafe { APB1_PRESC };
+        if apb1_out > 45_000_000 {
+            return Err(false);
+        }
+
+        unsafe { APB1_SPEED = pll_out };
+
+        let apb2_out = ahb_out / unsafe { APB2_PRESC };
+        if apb2_out > 90_000_000 {
+            return Err(false);
+        }
+
+        unsafe { APB2_SPEED = pll_out };
+
+        self.base.main_pll_on_not_off().set(true);
+
         Ok(Rcc {
             base: self.base,
-
             pll_state: pll_state::On,
-
-            pll_clock_input_speed: self.pll_clock_input_speed,
-            vco_clock_speed: self.vco_clock_speed,
         })
     }
 
@@ -53,6 +105,9 @@ impl Rcc<pll_state::Off> {
         b1.set((value & 0x04) == 0x04);
         b2.set((value & 0x02) == 0x02);
         b3.set((value & 0x01) == 0x01);
+
+        unsafe { PLL_R = value as u32 };
+
         Ok(self)
     }
 
@@ -62,6 +117,9 @@ impl Rcc<pll_state::Off> {
         b2.set((value & 0x04) == 0x04);
         b3.set((value & 0x02) == 0x02);
         b4.set((value & 0x01) == 0x01);
+
+        unsafe { PLL_Q = value as u32 };
+
         self
     }
 
@@ -85,6 +143,9 @@ impl Rcc<pll_state::Off> {
             4 | 8 => true,
             _ => false,
         });
+
+        unsafe { PLL_P = div_factor as u32 };
+
         self
     }
 
@@ -103,6 +164,9 @@ impl Rcc<pll_state::Off> {
         b7.set((value & 0x004) == 0x004);
         b8.set((value & 0x002) == 0x002);
         b9.set((value & 0x001) == 0x001);
+
+        unsafe { PLL_N = value as u32 };
+
         Ok(self)
     }
 
@@ -117,7 +181,74 @@ impl Rcc<pll_state::Off> {
         b4.set((value & 0x04) == 0x04);
         b5.set((value & 0x02) == 0x02);
         b6.set((value & 0x01) == 0x01);
+
+        unsafe { PLL_M = value as u32 };
+
         Ok(self)
+    }
+
+    pub fn set_ahb_prescaler(self, value: u16) -> Rcc<pll_state::Off> {
+        let (mut b1, mut b2, mut b3, mut b4) = self.base.ahb();
+        b1.set(match value {
+            2 | 4 | 8 | 16 | 64 | 128 | 256 | 512 => true,
+            _ => false,
+        });
+        b2.set(match value {
+            64 | 128 | 256 | 512 => true,
+            _ => false,
+        });
+        b3.set(match value {
+            8 | 16 | 256 | 512 => true,
+            _ => false,
+        });
+        b4.set(match value {
+            4 | 16 | 128 | 512 => true,
+            _ => false,
+        });
+
+        unsafe { AHB_PRESC = value as u32 };
+
+        self
+    }
+
+    pub fn set_apb1_prescaler(self, value: u8) -> Rcc<pll_state::Off> {
+        let (mut b1, mut b2, mut b3) = self.base.apb_1();
+        b1.set(match value {
+            2 | 4 | 8 | 16 => true,
+            _ => false,
+        });
+        b2.set(match value {
+            8 | 16 => true,
+            _ => false,
+        });
+        b3.set(match value {
+            4 | 16 => true,
+            _ => false,
+        });
+
+        unsafe { APB1_PRESC = value as u32 };
+
+        self
+    }
+
+    pub fn set_apb2_prescaler(self, value: u8) -> Rcc<pll_state::Off> {
+        let (mut b1, mut b2, mut b3) = self.base.apb_2();
+        b1.set(match value {
+            2 | 4 | 8 | 16 => true,
+            _ => false,
+        });
+        b2.set(match value {
+            8 | 16 => true,
+            _ => false,
+        });
+        b3.set(match value {
+            4 | 16 => true,
+            _ => false,
+        });
+
+        unsafe { APB2_PRESC = value as u32 };
+
+        self
     }
 }
 
@@ -138,6 +269,9 @@ impl<STATE> Rcc<STATE> {
         let (mut b1, mut b2) = self.base.system_clock_switch();
         b1.set(false);
         b2.set(false);
+
+        unsafe { SYS_CLOCK_SPEED = HSI_SPEED };
+
         self
     }
 

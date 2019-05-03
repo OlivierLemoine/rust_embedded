@@ -105,6 +105,31 @@ impl Rcc {
         )
     }
 
+    pub fn apb_2(&self) -> (Bit, Bit, Bit) {
+        (
+            Bit::new(Register::new(self.base + 0x08), 15),
+            Bit::new(Register::new(self.base + 0x08), 14),
+            Bit::new(Register::new(self.base + 0x08), 13),
+        )
+    }
+
+    pub fn apb_1(&self) -> (Bit, Bit, Bit) {
+        (
+            Bit::new(Register::new(self.base + 0x08), 12),
+            Bit::new(Register::new(self.base + 0x08), 11),
+            Bit::new(Register::new(self.base + 0x08), 10),
+        )
+    }
+
+    pub fn ahb(&self) -> (Bit, Bit, Bit, Bit) {
+        (
+            Bit::new(Register::new(self.base + 0x08), 7),
+            Bit::new(Register::new(self.base + 0x08), 6),
+            Bit::new(Register::new(self.base + 0x08), 5),
+            Bit::new(Register::new(self.base + 0x08), 4),
+        )
+    }
+
     pub fn system_clock_status(&self) -> (Bit, Bit) {
         (
             Bit::new(Register::new(self.base + 0x08), 3),

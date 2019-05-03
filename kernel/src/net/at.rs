@@ -202,8 +202,22 @@ pub fn create(c_type: ConnectionType) -> ConnectionFd {
 
 unsafe fn add_new_char(c: char) {
     print_char!(c);
-    AT_HANDLER.ptr_write += 1 % ESP_BUFFER_SIZE;
-    AT_HANDLER.get_data_in_mut()[AT_HANDLER.ptr_write] = c;
+    let t = AT_HANDLER.get_data_in_mut();
+    t[AT_HANDLER.ptr_write] = c;
+    AT_HANDLER.ptr_write = (AT_HANDLER.ptr_write + 1) % ESP_BUFFER_SIZE;
+}
+
+pub fn read_wifi() -> String {
+    unsafe { dispatch() };
+    while unsafe { AT_HANDLER.get_wifi_in() }.len() == 0 {
+        while unsafe { AT_HANDLER.state } != -1 {
+            unsafe { dispatch() };
+        }
+    }
+    let s: &mut String = unsafe { AT_HANDLER.get_wifi_in_mut() };
+    let res = s.clone();
+    *s = String::new();
+    res
 }
 
 unsafe fn dispatch() {
@@ -242,6 +256,6 @@ unsafe fn dispatch() {
                 }
             }
         }
-        AT_HANDLER.ptr_read += 1 % ESP_BUFFER_SIZE;
+        AT_HANDLER.ptr_read = (AT_HANDLER.ptr_read + 1) % ESP_BUFFER_SIZE;
     }
 }

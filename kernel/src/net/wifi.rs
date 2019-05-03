@@ -12,7 +12,8 @@ pub fn connect(ssid: String, pwd: String) {
     u.write("\"\r\n".as_bytes());
 }
 
-pub fn list_available_ap() {
+pub fn list_available_ap() -> String {
     let u = Usart::reopen_com(USART4);
     u.write("AT+CWLAP\r\n".as_bytes());
+    super::at::read_wifi()
 }

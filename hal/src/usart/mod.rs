@@ -201,7 +201,7 @@ impl<MODE> Usart<states::Enable, MODE, usart_state::Waiting> {
     }
 
     pub fn set_baud_rate(self, baud: u32) -> Usart<states::Enable, MODE, usart_state::Waiting> {
-        let b = 16_000_000 / baud;
+        let b = super::rcc::get_usart_speed() / baud;
 
         self.base.baud_rate().write(b as u16);
         self
