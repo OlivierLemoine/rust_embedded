@@ -227,6 +227,12 @@ unsafe fn dispatch() {
     while AT_HANDLER.ptr_write != AT_HANDLER.ptr_read {
         let c = AT_HANDLER.get_data_in_mut()[AT_HANDLER.ptr_read];
         match AT_HANDLER.state {
+            -20 => {
+                if c == '\n' {
+                    AT_HANDLER.state = -2;
+                }
+            }
+
             -2 => {
                 let s: &mut String = &mut AT_HANDLER.get_wifi_in_mut();
                 s.push(c);
@@ -240,8 +246,12 @@ unsafe fn dispatch() {
                 let s_tmp: &mut String = AT_HANDLER.get_tmp_parse_mut();
                 s_tmp.push(c);
 
-                if s_tmp.ends_with("AT+CWLAP") {
-                    AT_HANDLER.state = -2;
+                if s_tmp.ends_with("AT+GMR")
+                    || s_tmp.ends_with("AT+CWMODE=")
+                    || s_tmp.ends_with("AT+CWLAP")
+                    || s_tmp.ends_with("AT+CWJAP=")
+                {
+                    AT_HANDLER.state = -20;
                     AT_HANDLER.wifi_end = false;
                     AT_HANDLER.tmp_parse = Some(String::new());
                 }
