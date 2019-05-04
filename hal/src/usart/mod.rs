@@ -44,6 +44,18 @@ macro_rules! print_u32 {
 }
 
 #[macro_export]
+macro_rules! print_i32 {
+    ($input:expr) => {
+        if $input < 0 {
+            print!("-");
+            print_u32!(($input * -1) as u32);
+        } else {
+            print_u32!($input as u32);
+        }
+    };
+}
+
+#[macro_export]
 macro_rules! print_hexa {
     ($input:expr) => {
         let u = hal::usart::raw::Usart::new(hal::usart::raw::USART2);

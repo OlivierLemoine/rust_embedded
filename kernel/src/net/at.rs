@@ -203,6 +203,9 @@ pub fn create(c_type: ConnectionType) -> ConnectionFd {
 }
 
 unsafe fn add_new_char(c: char) {
+    // hal::usart::raw::Usart::new(hal::usart::raw::USART2)
+    //     .data()
+    //     .write(c as u8);
     let t = AT_HANDLER.get_data_in_mut();
     t[AT_HANDLER.ptr_write] = c;
     AT_HANDLER.ptr_write = (AT_HANDLER.ptr_write + 1) % ESP_BUFFER_SIZE;
@@ -223,18 +226,27 @@ pub fn read_wifi() -> String {
 unsafe fn dispatch() {
     while AT_HANDLER.ptr_write != AT_HANDLER.ptr_read {
         let c = AT_HANDLER.get_data_in_mut()[AT_HANDLER.ptr_read];
+        // let u = hal::usart::Usart::reopen_com(hal::usart::raw::USART2);
+        // u.put_char(b'\n');
+        // u.put_char(b'\n');
+        // u.write("New char : ".as_bytes());
+        // u.put_char(c as u8);
+        // u.put_char(b'\n');
+        print_i32!(AT_HANDLER.state);
         match AT_HANDLER.state {
             -2 => {
-                println!("oui1");
+                println!("~1");
                 let s: &mut String = &mut AT_HANDLER.get_wifi_in_mut();
-                println!("oui2");
+                println!("~2");
                 s.push(c);
-                println!("oui3");
+                println!("~3");
                 if s.ends_with("OK") || s.ends_with("ERROR") {
+                    println!("~4");
+                    println!("oh non !!!!!!!!");
                     AT_HANDLER.state = -1;
                     AT_HANDLER.wifi_end = true;
                 }
-                println!("oui4");
+                println!("~5");
             }
 
             -1 => {

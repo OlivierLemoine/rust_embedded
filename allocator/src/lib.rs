@@ -62,9 +62,13 @@ unsafe impl GlobalAlloc for Alloc {
             if isFree!(p) && enoughSize!(p, size) {
                 let prev_size = getSize!(p);
                 set!(p, true, size);
-                let next_p = next!(p);
-                set!(next_p, false, prev_size - size);
+                if prev_size != size {
+                    let next_p = next!(p);
+                    set!(next_p, false, prev_size - size);
+                }
                 break;
+            } else if ptr::read(p) == 0 {
+                on_oom(layout);
             }
             p = next!(p);
         }
@@ -78,8 +82,11 @@ unsafe impl GlobalAlloc for Alloc {
 
         let next_header = next!(header);
 
+        set!(header, false, getSize!(header));
+
+
         if isFree!(next_header) {
-            let total_size = getSize!(next_header) + getSize!(header) + 1;
+            let total_size = getSize!(next_header) + getSize!(header);
             set!(header, false, total_size);
         } else {
             set!(header, false, getSize!(header));
@@ -92,7 +99,7 @@ static HEAP: Alloc = Alloc { size: 0x8000 };
 
 #[alloc_error_handler]
 fn on_oom(_layout: Layout) -> ! {
-    panic!("");
+    panic!("Out of memory");
 }
 
 pub fn init() {
