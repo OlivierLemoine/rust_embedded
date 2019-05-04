@@ -226,34 +226,19 @@ pub fn read_wifi() -> String {
 unsafe fn dispatch() {
     while AT_HANDLER.ptr_write != AT_HANDLER.ptr_read {
         let c = AT_HANDLER.get_data_in_mut()[AT_HANDLER.ptr_read];
-        // let u = hal::usart::Usart::reopen_com(hal::usart::raw::USART2);
-        // u.put_char(b'\n');
-        // u.put_char(b'\n');
-        // u.write("New char : ".as_bytes());
-        // u.put_char(c as u8);
-        // u.put_char(b'\n');
-        print_i32!(AT_HANDLER.state);
         match AT_HANDLER.state {
             -2 => {
-                println!("~1");
                 let s: &mut String = &mut AT_HANDLER.get_wifi_in_mut();
-                println!("~2");
                 s.push(c);
-                println!("~3");
                 if s.ends_with("OK") || s.ends_with("ERROR") {
-                    println!("~4");
-                    println!("oh non !!!!!!!!");
                     AT_HANDLER.state = -1;
                     AT_HANDLER.wifi_end = true;
                 }
-                println!("~5");
             }
 
             -1 => {
                 let s_tmp: &mut String = AT_HANDLER.get_tmp_parse_mut();
                 s_tmp.push(c);
-
-                println!(AT_HANDLER.get_tmp_parse());
 
                 if s_tmp.ends_with("AT+CWLAP") {
                     AT_HANDLER.state = -2;
