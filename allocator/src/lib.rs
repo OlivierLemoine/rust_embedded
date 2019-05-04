@@ -22,7 +22,7 @@ macro_rules! isFree {
 
 macro_rules! next {
     ($ptr:expr) => {
-        $ptr.offset((getSize!($ptr) + 4) as isize)
+        $ptr.offset((getSize!($ptr)) as isize)
     };
 }
 
@@ -55,14 +55,15 @@ unsafe impl Sync for Alloc {}
 
 unsafe impl GlobalAlloc for Alloc {
     unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
-        let size = layout.size() as u32;
+        let raw_size = layout.size() as u32;
+        let size = 1 + raw_size / 4 + if raw_size % 4 < 3 { 1 } else { 0 };
         let mut p = get_heap_start();
         loop {
             if isFree!(p) && enoughSize!(p, size) {
                 let prev_size = getSize!(p);
                 set!(p, true, size);
                 let next_p = next!(p);
-                set!(next_p, false, prev_size - size - 4);
+                set!(next_p, false, prev_size - size);
                 break;
             }
             p = next!(p);
@@ -78,7 +79,7 @@ unsafe impl GlobalAlloc for Alloc {
         let next_header = next!(header);
 
         if isFree!(next_header) {
-            let total_size = getSize!(next_header) + getSize!(header) + 4;
+            let total_size = getSize!(next_header) + getSize!(header) + 1;
             set!(header, false, total_size);
         } else {
             set!(header, false, getSize!(header));

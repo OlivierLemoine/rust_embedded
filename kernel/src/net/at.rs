@@ -13,6 +13,7 @@ static mut AT_HANDLER: ATHandler = ATHandler {
     ptr_read: 0,
     tmp_parse: None,
     wifi_in: None,
+    wifi_end: false,
     state: -1,
     size_to_read: 0,
 };
@@ -35,6 +36,7 @@ struct ATHandler {
     ptr_read: usize,
     tmp_parse: Option<String>,
     wifi_in: Option<String>,
+    wifi_end: bool,
     state: i32,
     size_to_read: i32,
 }
@@ -188,8 +190,8 @@ pub fn init() {
     unsafe {
         AT_HANDLER.connections = Some(Vec::with_capacity(0));
         AT_HANDLER.data_in = Some(['\0'; ESP_BUFFER_SIZE]);
-        AT_HANDLER.wifi_in = Some(String::from(""));
-        AT_HANDLER.tmp_parse = Some(String::from(""));
+        AT_HANDLER.wifi_in = Some(String::new());
+        AT_HANDLER.tmp_parse = Some(String::new());
     }
 }
 
@@ -201,7 +203,6 @@ pub fn create(c_type: ConnectionType) -> ConnectionFd {
 }
 
 unsafe fn add_new_char(c: char) {
-    print_char!(c);
     let t = AT_HANDLER.get_data_in_mut();
     t[AT_HANDLER.ptr_write] = c;
     AT_HANDLER.ptr_write = (AT_HANDLER.ptr_write + 1) % ESP_BUFFER_SIZE;
@@ -209,11 +210,10 @@ unsafe fn add_new_char(c: char) {
 
 pub fn read_wifi() -> String {
     unsafe { dispatch() };
-    while unsafe { AT_HANDLER.get_wifi_in() }.len() == 0 {
-        while unsafe { AT_HANDLER.state } != -1 {
-            unsafe { dispatch() };
-        }
+    while !unsafe { AT_HANDLER.wifi_end } {
+        unsafe { dispatch() };
     }
+    unsafe { AT_HANDLER.wifi_end = false };
     let s: &mut String = unsafe { AT_HANDLER.get_wifi_in_mut() };
     let res = s.clone();
     *s = String::new();
@@ -225,26 +225,28 @@ unsafe fn dispatch() {
         let c = AT_HANDLER.get_data_in_mut()[AT_HANDLER.ptr_read];
         match AT_HANDLER.state {
             -2 => {
+                println!("oui1");
                 let s: &mut String = &mut AT_HANDLER.get_wifi_in_mut();
+                println!("oui2");
                 s.push(c);
+                println!("oui3");
                 if s.ends_with("OK") || s.ends_with("ERROR") {
                     AT_HANDLER.state = -1;
+                    AT_HANDLER.wifi_end = true;
                 }
+                println!("oui4");
             }
 
             -1 => {
-                if c == '\n' {
-                    match AT_HANDLER.get_tmp_parse().as_str() {
-                        "AT+CWLAP" => {
-                            AT_HANDLER.state = -2;
-                            AT_HANDLER.tmp_parse = Some(String::new());
-                        }
-                        _ => {}
+                let s_tmp: &mut String = AT_HANDLER.get_tmp_parse_mut();
+                s_tmp.push(c);
 
-                    }
-                } else if c == ':' {
-                } else {
-                    AT_HANDLER.get_tmp_parse_mut().push(c);
+                println!(AT_HANDLER.get_tmp_parse());
+
+                if s_tmp.ends_with("AT+CWLAP") {
+                    AT_HANDLER.state = -2;
+                    AT_HANDLER.wifi_end = false;
+                    AT_HANDLER.tmp_parse = Some(String::new());
                 }
             }
             x => {

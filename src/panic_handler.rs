@@ -10,6 +10,6 @@ pub unsafe extern "C" fn default_handler_print() {
 
 #[panic_handler]
 fn panic(_panic: &PanicInfo<'_>) -> ! {
-    print!("panic occurd !");
+    println!("panic occurd !");
     loop {}
 }

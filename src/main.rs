@@ -16,7 +16,6 @@ use alloc::string::String;
 
 #[no_mangle]
 pub unsafe extern "C" fn main() {
-    // hal::rcc::Rcc::new().enable_hsi().sysclock_into_hsi();
     let rcc = hal::rcc::Rcc::new()
         .enable_hsi()
         .main_pll_src_into_hsi()
@@ -31,8 +30,7 @@ pub unsafe extern "C" fn main() {
         .set_apb2_prescaler(2)
         .enable_pll()
         .unwrap();
-    rcc.sysclock_into_pll()
-        .unwrap();
+    rcc.sysclock_into_pll().unwrap();
     allocator::init();
     kernel::init();
 
@@ -40,7 +38,11 @@ pub unsafe extern "C" fn main() {
         print_char!(_c);
     }));
 
+    println!("");
+
     let _list = kernel::net::wifi::list_available_ap();
+
+    println!(_list);
 
     // kernel::net::wifi::connect(String::from("Livebox-092d"), String::from("wifieasy"));
 
