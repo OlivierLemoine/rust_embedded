@@ -2,6 +2,8 @@
 
 pub mod raw;
 
+use super::flash;
+
 pub const HSI_SPEED: u32 = 16_000_000;
 
 static mut PLL_M: u32 = 1;
@@ -42,10 +44,6 @@ impl Rcc<pll_state::Off> {
 
             pll_state: pll_state::Off,
         }
-    }
-
-    pub fn get_sys_clock_speed() -> u32 {
-        0
     }
 
     pub fn enable_pll(self) -> Result<Rcc<pll_state::On>, bool> {
@@ -90,6 +88,8 @@ impl Rcc<pll_state::Off> {
         unsafe { APB2_SPEED = pll_out };
 
         self.base.main_pll_on_not_off().set(true);
+
+        while !self.base.main_pll_is_ready().get() {}
 
         Ok(Rcc {
             base: self.base,
@@ -285,6 +285,47 @@ impl<STATE> Rcc<STATE> {
 
 impl Rcc<pll_state::On> {
     pub fn sysclock_into_pll(self) -> Result<Rcc<pll_state::On>, bool> {
+        let (mut fb1, mut fb2, mut fb3, mut fb4) = flash::Flash::new().latency();
+
+        match unsafe { SYS_CLOCK_SPEED } {
+            30_000_001...60_000_000 => {
+                fb1.set(false);
+                fb2.set(false);
+                fb3.set(false);
+                fb4.set(true);
+            }
+            60_000_001...90_000_000 => {
+                fb1.set(false);
+                fb2.set(false);
+                fb3.set(true);
+                fb4.set(false);
+            }
+            90_000_001...120_000_000 => {
+                fb1.set(false);
+                fb2.set(false);
+                fb3.set(true);
+                fb4.set(true);
+            }
+            120_000_001...150_000_000 => {
+                fb1.set(false);
+                fb2.set(true);
+                fb3.set(false);
+                fb4.set(false);
+            }
+            150_000_001...180_000_000 => {
+                fb1.set(false);
+                fb2.set(true);
+                fb3.set(false);
+                fb4.set(true);
+            }
+            _ => {
+                fb1.set(false);
+                fb2.set(false);
+                fb3.set(false);
+                fb4.set(false);
+            }
+        }
+
         let (mut b1, mut b2) = self.base.system_clock_switch();
         b1.set(true);
         b2.set(false);

@@ -2,6 +2,7 @@
 
 // #![feature(impl_trait_in_bindings)]
 
+pub mod flash;
 pub mod gpio;
 pub mod i2c;
 pub mod mmu;

@@ -17,7 +17,7 @@ use alloc::string::String;
 #[no_mangle]
 pub unsafe extern "C" fn main() {
     // hal::rcc::Rcc::new().enable_hsi().sysclock_into_hsi();
-    hal::rcc::Rcc::new()
+    let rcc = hal::rcc::Rcc::new()
         .enable_hsi()
         .main_pll_src_into_hsi()
         .set_pll_m(8)
@@ -30,8 +30,8 @@ pub unsafe extern "C" fn main() {
         .set_apb1_prescaler(4)
         .set_apb2_prescaler(2)
         .enable_pll()
-        .unwrap()
-        .sysclock_into_pll()
+        .unwrap();
+    rcc.sysclock_into_pll()
         .unwrap();
     allocator::init();
     kernel::init();
