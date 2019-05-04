@@ -38,9 +38,9 @@
                 }
             ],
             "internalConsoleOptions": "neverOpen",
-            "logging": {
-                "engineLogging": true,
-            }
+            // "logging": {
+            //     "engineLogging": true,
+            // }
         }
     ]
 }

@@ -23,7 +23,8 @@ static mut APB1_SPEED: u32 = 1;
 static mut APB2_SPEED: u32 = 1;
 
 pub fn get_usart_speed() -> u32 {
-    unsafe { APB1_SPEED }
+    let apb1_speed = unsafe { APB1_SPEED };
+    apb1_speed
 }
 
 pub mod pll_state {
@@ -78,14 +79,14 @@ impl Rcc<pll_state::Off> {
             return Err(false);
         }
 
-        unsafe { APB1_SPEED = pll_out };
+        unsafe { APB1_SPEED = apb1_out };
 
         let apb2_out = ahb_out / unsafe { APB2_PRESC };
         if apb2_out > 90_000_000 {
             return Err(false);
         }
 
-        unsafe { APB2_SPEED = pll_out };
+        unsafe { APB2_SPEED = apb2_out };
 
         self.base.main_pll_on_not_off().set(true);
 
