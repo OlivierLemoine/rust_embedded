@@ -25,7 +25,7 @@ RUST_FLAGS += -C panic=abort
 RUST_FLAGS += -C opt-level=0
 RUST_FLAGS += -C debuginfo=2
 RUST_FLAGS += --target=thumbv7em-none-eabihf
-RUST_FLAGS += -C lto=yes
+# RUST_FLAGS += -C lto=yes
 RUST_FLAGS += -C codegen-units=1
 RUST_FLAGS_BIN += --crate-type=staticlib
 RUST_FLAGS_LIB += --crate-type=lib

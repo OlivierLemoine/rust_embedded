@@ -15,6 +15,7 @@ static mut AT_HANDLER: ATHandler = ATHandler {
     wifi_in: None,
     wifi_end: false,
     state: -1,
+    curr_connection_number: 0,
     size_to_read: 0,
 };
 
@@ -38,31 +39,49 @@ struct ATHandler {
     wifi_in: Option<String>,
     wifi_end: bool,
     state: i32,
-    size_to_read: i32,
+    curr_connection_number: u32,
+    size_to_read: u32,
 }
 
 pub type ConnectionFd = usize;
 
 pub trait Connection {
-    fn connect_to(&self, ip: String, port: String);
-    fn send(&self, msg: String);
+    fn connect_to(&self, ip: String, port: String) -> String;
+    fn send(&self, msg: String) -> String;
     fn read(&self) -> String;
 }
 
 impl Connection for ConnectionFd {
-    fn connect_to(&self, ip: String, port: String) {
-        let tmp = &unsafe { &AT_HANDLER }.get_connection()[*self];
+    fn connect_to(&self, ip: String, port: String) -> String {
+        let tmp = find_corresponding_connection(*self).unwrap();
         tmp.connect_to(ip, port);
+        read_wifi()
     }
 
-    fn send(&self, msg: String) {
-        let tmp = &unsafe { &AT_HANDLER }.get_connection()[*self];
+    fn send(&self, msg: String) -> String {
+        let tmp = find_corresponding_connection(*self).unwrap();
         tmp.send(msg);
+        read_wifi()
     }
 
     fn read(&self) -> String {
-        String::new()
+        let tmp = find_corresponding_connection(*self).unwrap();
+
+        unsafe { dispatch() };
+
+        let res = tmp.data.clone();
+        tmp.data = String::new();
+        res
     }
+}
+
+fn find_corresponding_connection<'a>(id: usize) -> Option<&'a mut __Connection> {
+    for i in unsafe { &mut AT_HANDLER }.get_connection_mut() {
+        if i.get_id() == id {
+            return Some(i);
+        }
+    }
+    None
 }
 
 impl ATHandler {
@@ -134,27 +153,36 @@ impl __Connection {
 
     pub fn connect_to(&self, ip: String, port: String) {
         let u = usart::Usart::reopen_com(usart::raw::USART4);
-        // u.write("AT+CIPSTART=\"TCP\",\"192.168.1.21\",8000\r\n".as_bytes());
-        u.write(b"AT+CIPSTART=");
+        u.write("AT+CIPSTART=".as_bytes());
+        u.write_dec(self.id as u32);
         u.write(match self.c_type {
-            ConnectionType::TCP => b"TCP,",
-            ConnectionType::UDP => b"UDP,",
+            ConnectionType::TCP => ",\"TCP\",\"".as_bytes(),
+            ConnectionType::UDP => ",\"UDP\",\"".as_bytes(),
         });
         u.write(ip.as_bytes());
-        u.put_char(b',');
+        u.write("\",".as_bytes());
         u.write(port.as_bytes());
-        u.write(b"\r\n");
+        u.write("\r\n".as_bytes());
     }
 
     pub fn send(&self, s: String) {
         let u = usart::Usart::reopen_com(usart::raw::USART4);
-        u.write("AT+CIPSENDBUF=".as_bytes());
+        let _a = unsafe { &AT_HANDLER };
+        u.write("AT+CIPSEND=".as_bytes());
+        u.write_dec(self.id as u32);
+        u.write(",".as_bytes());
         u.write_dec(s.len() as u32);
-        u.write(s.as_bytes());
+        u.write("\r\n".as_bytes());
+        // read_wifi();
+        // u.write(s.as_bytes());
     }
 
     fn push_c(&mut self, c: char) {
         self.data.push(c);
+    }
+
+    fn get_id(&self) -> usize {
+        self.id
     }
 }
 
@@ -185,7 +213,8 @@ pub fn init() {
         .enable_receive_interrupt()
         .set_on_received_callback(tmp)
         .set_baud_rate(115200)
-        .ready_usart();
+        .ready_usart()
+        .write("\r\n\r\n".as_bytes());
 
     unsafe {
         AT_HANDLER.connections = Some(Vec::with_capacity(0));
@@ -196,16 +225,29 @@ pub fn init() {
 }
 
 pub fn create(c_type: ConnectionType) -> ConnectionFd {
-    let id = unsafe { &AT_HANDLER }.get_connection().len();
+    let mut id: usize = 0;
+    loop {
+        let mut fine = true;
+        for i in unsafe { &AT_HANDLER }.get_connection() {
+            if i.get_id() == id {
+                id += 1;
+                fine = false;
+            }
+        }
+
+        if fine {
+            break;
+        }
+    }
     let c = __Connection::new(c_type, id);
     unsafe { &mut AT_HANDLER }.get_connection_mut().push(c);
     id
 }
 
 unsafe fn add_new_char(c: char) {
-    // hal::usart::raw::Usart::new(hal::usart::raw::USART2)
-    //     .data()
-    //     .write(c as u8);
+    hal::usart::raw::Usart::new(hal::usart::raw::USART2)
+        .data()
+        .write(c as u8);
     let t = AT_HANDLER.get_data_in_mut();
     t[AT_HANDLER.ptr_write] = c;
     AT_HANDLER.ptr_write = (AT_HANDLER.ptr_write + 1) % ESP_BUFFER_SIZE;
@@ -227,6 +269,28 @@ unsafe fn dispatch() {
     while AT_HANDLER.ptr_write != AT_HANDLER.ptr_read {
         let c = AT_HANDLER.get_data_in_mut()[AT_HANDLER.ptr_read];
         match AT_HANDLER.state {
+            -40 => {
+                if c == '>' {
+                    AT_HANDLER.wifi_end = true;
+                    AT_HANDLER.state = -2;
+                }
+            }
+            -31 => {
+                if c == ',' {
+                    AT_HANDLER.state = AT_HANDLER.curr_connection_number as i32;
+                } else {
+                    AT_HANDLER.size_to_read *= 10;
+                    AT_HANDLER.size_to_read += (c as u32) - 48;
+                }
+            }
+            -30 => {
+                if c == ',' {
+                    AT_HANDLER.state = -31;
+                } else {
+                    AT_HANDLER.curr_connection_number *= 10;
+                    AT_HANDLER.curr_connection_number += (c as u32) - 48;
+                }
+            }
             -20 => {
                 if c == '\n' {
                     AT_HANDLER.state = -2;
@@ -250,15 +314,28 @@ unsafe fn dispatch() {
                     || s_tmp.ends_with("AT+CWMODE=")
                     || s_tmp.ends_with("AT+CWLAP")
                     || s_tmp.ends_with("AT+CWJAP=")
+                    || s_tmp.ends_with("AT+CIFSR")
+                    || s_tmp.ends_with("AT+CIPMUX=")
+                    || s_tmp.ends_with("AT+CIPSTART=")
+                    || s_tmp.ends_with("AT+CIPSEND=")
                 {
                     AT_HANDLER.state = -20;
                     AT_HANDLER.wifi_end = false;
                     AT_HANDLER.tmp_parse = Some(String::new());
+                } else if s_tmp.ends_with("CLOSE") {
+                } else if s_tmp.ends_with("AT+CIPSENDBUF=") {
+                    AT_HANDLER.state = -20;
+                    AT_HANDLER.wifi_end = false;
+                    AT_HANDLER.tmp_parse = Some(String::new());
+                } else if s_tmp.ends_with("+IPD,") {
+                    // AT_HANDLER.curr_connection_number = 0;
+                    // AT_HANDLER.size_to_read = 0;
+                    // AT_HANDLER.state = -30;
                 }
             }
             x => {
-                let v: &mut Vec<__Connection> = &mut AT_HANDLER.get_connection_mut();
-                v[x as usize].push_c(c);
+                let v = find_corresponding_connection(x as usize).unwrap();
+                v.push_c(c);
                 AT_HANDLER.size_to_read -= 1;
                 if AT_HANDLER.size_to_read == 0 {
                     AT_HANDLER.state = -1;

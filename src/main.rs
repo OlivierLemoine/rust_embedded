@@ -35,18 +35,29 @@ pub unsafe extern "C" fn main() {
     kernel::init();
 
     hal_alloc::setup_usart2(Box::new(|c| {
-        print_char!(c);
-        // hal::usart::raw::Usart::new(hal::usart::raw::USART4)
-        //     .data()
-        //     .write(c as u8);
+        // print_char!(c);
+        hal::usart::raw::Usart::new(hal::usart::raw::USART4)
+            .data()
+            .write(c as u8);
     }));
 
     println!("");
 
-    println!(kernel::net::wifi::chip_version());
     println!(kernel::net::wifi::wifi_into_client());
-    println!(kernel::net::wifi::list_available_ap());
-    println!(kernel::net::wifi::connect_to_ap(String::from("Livebox-092d"), String::from("wifieasy")));
+    println!(kernel::net::wifi::connect_to_ap(
+        String::from("Livebox-092d"),
+        String::from("wifieasy")
+    ));
+    println!(kernel::net::wifi::get_self_ip());
+    println!(kernel::net::wifi::into_multiple_connection());
 
-    loop {}
+    let tcp = kernel::net::tcp::Tcp::new();
+
+    tcp.connect(String::from("192.168.1.21"), String::from("8000"));
+
+    // tcp.send(String::from("Hey salut"));
+
+    loop {
+        // print!(tcp.read());
+    }
 }

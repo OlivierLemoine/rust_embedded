@@ -16,10 +16,14 @@ impl Tcp {
     }
 
     pub fn connect(&self, ip: String, port: String) {
-        self.connection.connect_to(ip, port);
+        print!(self.connection.connect_to(ip, port));
     }
 
     pub fn send(&self, s: String) {
-        self.connection.send(s);
+        print!(self.connection.send(s));
+    }
+
+    pub fn read(&self) -> String {
+        self.connection.read()
     }
 }

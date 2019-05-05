@@ -26,20 +26,8 @@ macro_rules! println {
 #[macro_export]
 macro_rules! print_u32 {
     ($input:expr) => {
-        let u = hal::usart::raw::Usart::new(hal::usart::raw::USART2);
-        let mut res = $input;
-
-        let mut res_arr: [u8; 10] = [0; 10];
-
-        for i in (0..10).rev() {
-            res_arr[i] = (res % 10) as u8;
-            res = res / 10;
-        }
-
-        for i in res_arr.iter() {
-            u.data().write(48 + i);
-            while !u.transmission_complete().get() {}
-        }
+        let u = hal::usart::Usart::reopen_com(hal::usart::raw::USART2);
+        u.write_dec($input);
     };
 }
 
@@ -310,17 +298,26 @@ impl Usart<states::Enable, mode::RxTx, usart_state::Ready> {
     }
 
     pub fn write_dec(&self, v: u32) {
-        let mut res = v;
+        if v == 0 {
+            self.put_char(b'0');
+        } else {
+            let mut res = v;
 
-        let mut res_arr: [u8; 10] = [0; 10];
+            let mut res_arr: [u8; 10] = [0; 10];
+            for i in (0..10).rev() {
+                res_arr[i] = (res % 10) as u8;
+                res = res / 10;
+            }
 
-        for i in (0..10).rev() {
-            res_arr[i] = (res % 10) as u8;
-            res = res / 10;
-        }
+            let mut has_beg = false;
 
-        for i in res_arr.iter() {
-            self.put_char(48 + i);
+            for i in res_arr.iter() {
+                if *i == 0 && has_beg == false {
+                    continue;
+                }
+                has_beg = true;
+                self.put_char(48 + i);
+            }
         }
     }
 
