@@ -64,6 +64,10 @@ pub fn tick() {
             }
 
             s.current_task = (s.current_task + 1) % s.running_tasks.len();
+
+            for i in 0..16 {
+                s.calling_ctx[i] = s.running_tasks[s.current_task].get_ctx_at(i);
+            }
         }
         None => panic!(),
     }
