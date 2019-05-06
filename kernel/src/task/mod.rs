@@ -2,16 +2,33 @@ use alloc::vec::Vec;
 
 mod task;
 
-static mut SCHEDULER: Scheduler = Scheduler { tasks: None };
+static mut SCHEDULER: Option<Scheduler> = None;
 #[no_mangle]
 static mut ctx: [u32; 16] = [0; 16];
 
 struct Scheduler {
-    tasks: Option<Vec<task::Task>>,
+    next_id: u32,
+    running_tasks: Vec<task::Task>,
+    waiting_tasks: Vec<task::Task>,
 }
 
 pub fn init() {
-    unsafe { SCHEDULER.tasks = Some(Vec::new()) };
+    unsafe {
+        SCHEDULER = Some(Scheduler {
+            next_id: 0,
+            running_tasks: Vec::new(),
+            waiting_tasks: Vec::new(),
+        });
+    }
 }
 
-pub fn new_thread(f: impl Fn() -> ()) {}
+pub fn new_thread(f: *const fn() -> ()) {
+    match unsafe { &mut SCHEDULER } {
+        Some(s) => {
+            s.running_tasks.push(task::Task::new(s.next_id, f));
+        }
+        None => {
+            panic!();
+        }
+    }
+}

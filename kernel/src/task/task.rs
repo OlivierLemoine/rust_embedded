@@ -4,11 +4,9 @@ pub struct Task {
 }
 
 impl Task {
-    pub fn new(id: u32, f: *const ()) -> Task {
+    pub fn new(id: u32, f: *const fn() -> ()) -> Task {
         let mut t = Task { id, ctx: [0; 16] };
         t.ctx[15] = f as u32;
         t
     }
 }
-
-fn test() {}
