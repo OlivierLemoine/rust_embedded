@@ -153,8 +153,8 @@ vtable:
     .weak      UsageFault_Handler
     .thumb_set UsageFault_Handler,Default_Handler
 
-    .weak      SVC_Handler
-    .thumb_set SVC_Handler,Default_Handler
+    @ .weak      SVC_Handler
+    @ .thumb_set SVC_Handler,Default_Handler
 
     .weak      DebugMon_Handler
     .thumb_set DebugMon_Handler,Default_Handler

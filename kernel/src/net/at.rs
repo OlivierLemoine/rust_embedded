@@ -56,7 +56,7 @@ impl Connection for ConnectionFd {
     fn read(&self) -> String {
         let tmp = find_corresponding_connection(*self).unwrap();
 
-        unsafe { dispatch() };
+        dispatch();
 
         let res = tmp.data.clone();
         tmp.data = String::new();
@@ -205,9 +205,9 @@ unsafe fn add_new_char(c: char) {
 pub fn read_wifi() -> String {
     match unsafe { &mut AT_HANDLER } {
         Some(a) => {
-            unsafe { dispatch() };
+            dispatch();
             while !a.wifi_end {
-                unsafe { dispatch() };
+                dispatch();
             }
             a.wifi_end = false;
             let s: &mut String = &mut a.wifi_in;

@@ -42,12 +42,12 @@ LFLAGS += --specs=nosys.specs
 LFLAGS += -nostdlib
 LFLAGS += -lgcc
 LFLAGS += -T$(LSCRIPT)
-VECT_TBL = ./boot/vector_table.S
-AS_SRC   = ./boot/core.S
+ASM_FILES += ./boot/vector_table.S
+ASM_FILES += ./boot/core.S
+ASM_FILES += ./kernel/src/swi/swi.S
 RUST_SRC += ./src/main.rs
 RUST_FILES = $(shell find -type f -name '*.rs')
-OBJS =  $(VECT_TBL:.S=.o)
-OBJS += $(AS_SRC:.S=.o)
+OBJS =  $(ASM_FILES:.S=.o)
 OBJS += $(RUST_SRC:.rs=.o)
 INCLUDE =
 .PHONY: all

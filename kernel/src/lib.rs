@@ -8,6 +8,7 @@ extern crate hal;
 
 pub mod task;
 pub mod net;
+mod swi;
 
 pub fn init(){
     task::init();
