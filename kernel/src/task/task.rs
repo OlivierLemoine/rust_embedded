@@ -9,4 +9,16 @@ impl Task {
         t.ctx[15] = f as u32;
         t
     }
+
+    pub fn get_id(&self) -> u32{
+        self.id
+    }
+
+    pub fn set_ctx_at(&mut self, index: usize, value: u32) {
+        self.ctx[index] = value;
+    }
+
+    pub fn get_ctx_at(&mut self, index: usize) -> u32 {
+        self.ctx[index]
+    }
 }
