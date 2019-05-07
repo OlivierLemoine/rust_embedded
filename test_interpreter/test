@@ -1,0 +1,6 @@
+def double a
+    call add a a
+    return
+end
+
+call double 2
