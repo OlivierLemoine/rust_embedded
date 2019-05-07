@@ -58,7 +58,7 @@ fn interp(lines: &Vec<&str>, at: usize, mut ctx: Ctx) -> (String, Msg) {
     while i < lines.len() {
         // println!("{} : {}", i, lines[i]);
         // thread::sleep(time::Duration::from_millis(2000));
-        if lines[i].trim().starts_with("//"){
+        if lines[i].trim().starts_with("//") {
             continue;
         }
         let keys: Vec<&str> = lines[i].trim().split(' ').collect();
@@ -198,6 +198,21 @@ fn interp(lines: &Vec<&str>, at: usize, mut ctx: Ctx) -> (String, Msg) {
                                     0.0
                                 }
                             }
+                            _ => 0.0,
+                        }
+                        .to_string();
+                    }
+                    func @ "$" => {
+                        let r1: f32 = match keys.len() {
+                            2 => match keys[1].parse() {
+                                Ok(v) => v,
+                                Err(_) => ctx.find(keys[1]).unwrap().value.parse().unwrap(),
+                            },
+                            _ => acc.parse().unwrap(),
+                        };
+
+                        acc = match func {
+                            "$" => r1,
                             _ => 0.0,
                         }
                         .to_string();

@@ -1,12 +1,12 @@
 def fibo n
     eq n 0
     if
-        add 0 0
+        $ 0
         return
     endif
     eq n 1
     if
-        add 1 0
+        $ 1
         return 
     endif
     sub n 1
