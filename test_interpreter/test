@@ -1,23 +1,10 @@
-def double a
-    add a a
-    return
-end
-
-def addBy6 a
-    add a 6
-    return
-end
-
-def doubleAndAddBy6 a
-    double a
-    > res
-    print
-    addBy6
-    return res
-end
-
-double 2
+add 3 2
 print
-addBy6 4
-doubleAndAddBy6 3
+> tmp1
+sub tmp1 3
+print
+mul 10
+> tmp2
+print
+div tmp2 3
 print

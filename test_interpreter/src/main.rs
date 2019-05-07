@@ -68,7 +68,7 @@ fn interp(lines: &Vec<&str>, at: usize, mut ctx: Ctx) -> String {
             }),
             "return" => {
                 let r = match keys.len() {
-                    3 => ctx.find(keys[2]).unwrap().value.clone(),
+                    2 => ctx.find(keys[1]).unwrap().value.clone(),
                     _ => acc.clone(),
                 };
                 return r;
@@ -108,7 +108,7 @@ fn interp(lines: &Vec<&str>, at: usize, mut ctx: Ctx) -> String {
                     acc = a;
                 }
                 None => match x {
-                    "add" => {
+                    func @ "add" | func @ "sub" | func @ "mul" | func @ "div" => {
                         let r1: f32 = match keys.len() {
                             2 | 3 => match keys[1].parse() {
                                 Ok(v) => v,
@@ -137,7 +137,14 @@ fn interp(lines: &Vec<&str>, at: usize, mut ctx: Ctx) -> String {
                                 tmp
                             }
                         };
-                        acc = (r1 + r2).to_string();
+                        acc = match func {
+                            "add" => r1 + r2,
+                            "sub" => r1 - r2,
+                            "mul" => r1 * r2,
+                            "div" => r1 / r2,
+                            _ => 0.0,
+                        }
+                        .to_string();
                     }
                     "print" => {
                         let r = match keys.len() {
