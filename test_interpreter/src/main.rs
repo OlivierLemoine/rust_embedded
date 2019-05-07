@@ -1,4 +1,5 @@
 use std::fs;
+use std::{thread, time};
 
 enum Msg {
     None,
@@ -55,6 +56,11 @@ fn interp(lines: &Vec<&str>, at: usize, mut ctx: Ctx) -> (String, Msg) {
 
     let mut acc = String::new();
     while i < lines.len() {
+        // println!("{} : {}", i, lines[i]);
+        // thread::sleep(time::Duration::from_millis(2000));
+        if lines[i].trim().starts_with("//"){
+            continue;
+        }
         let keys: Vec<&str> = lines[i].trim().split(' ').collect();
         match keys[0] {
             "def" => {
@@ -107,7 +113,8 @@ fn interp(lines: &Vec<&str>, at: usize, mut ctx: Ctx) -> (String, Msg) {
                 if boolean != 0.0 {
                 } else {
                     let mut depth = 0;
-                    while lines[i].trim() != "else" && lines[i].trim() != "end" || depth != 0 {
+                    i += 1;
+                    while lines[i].trim() != "else" && lines[i].trim() != "endif" || depth != 0 {
                         if lines[i].trim().starts_with("if") {
                             depth += 1;
                         }

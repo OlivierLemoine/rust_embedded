@@ -3,7 +3,6 @@ def fibo n
     if
         add 0 0
         return
-
     endif
     eq n 1
     if
@@ -11,7 +10,6 @@ def fibo n
         return 
     endif
     sub n 1
-    print
     fibo
     > r1
     sub n 2
@@ -21,5 +19,5 @@ def fibo n
     return
 end
 
-fibo 2
+fibo 16
 print
