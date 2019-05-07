@@ -61,10 +61,25 @@ fn interp(lines: &Vec<&str>, at: usize, mut ctx: Ctx) -> String {
                     i += 1;
                 }
             }
-            "call" => match ctx.find(keys[1]) {
+            ">" => ctx.vars.push(Var {
+                name: String::from(keys[1]),
+                value: acc.clone(),
+                line: 0,
+            }),
+            "return" => {
+                let r = match keys.len() {
+                    3 => ctx.find(keys[2]).unwrap().value.clone(),
+                    _ => acc.clone(),
+                };
+                return r;
+            }
+            "end" => {
+                return String::new();
+            }
+            x => match ctx.find(x) {
                 Some(v) => {
                     let mut vars: Vec<Var> = Vec::new();
-                    for j in 2..keys.len() {
+                    for j in 1..keys.len() {
                         vars.push(Var {
                             name: String::new(),
                             value: match ctx.find(keys[j]) {
@@ -92,13 +107,13 @@ fn interp(lines: &Vec<&str>, at: usize, mut ctx: Ctx) -> String {
 
                     acc = a;
                 }
-                None => match keys[1] {
+                None => match x {
                     "add" => {
                         let r1: f32 = match keys.len() {
-                            3 | 4 => match keys[2].parse() {
+                            2 | 3 => match keys[1].parse() {
                                 Ok(v) => v,
                                 Err(_) => {
-                                    let f = ctx.find(keys[2]).unwrap();
+                                    let f = ctx.find(keys[1]).unwrap();
                                     let v = f.value.parse().unwrap();
                                     v
                                 }
@@ -109,10 +124,10 @@ fn interp(lines: &Vec<&str>, at: usize, mut ctx: Ctx) -> String {
                             }
                         };
                         let r2: f32 = match keys.len() {
-                            4 => match keys[3].parse() {
+                            3 => match keys[2].parse() {
                                 Ok(v) => v,
                                 Err(_) => {
-                                    let f = ctx.find(keys[3]).unwrap();
+                                    let f = ctx.find(keys[2]).unwrap();
                                     let v = f.value.parse().unwrap();
                                     v
                                 }
@@ -126,30 +141,14 @@ fn interp(lines: &Vec<&str>, at: usize, mut ctx: Ctx) -> String {
                     }
                     "print" => {
                         let r = match keys.len() {
-                            3 => ctx.find(keys[2]).unwrap().value.clone(),
+                            3 => ctx.find(keys[1]).unwrap().value.clone(),
                             _ => acc.clone(),
                         };
                         println!("{}", r);
                     }
-                    _ => panic!("No function named {}", keys[1]),
+                    _ => {}
                 },
             },
-            ">" => ctx.vars.push(Var {
-                name: String::from(keys[1]),
-                value: acc.clone(),
-                line: 0,
-            }),
-            "return" => {
-                let r = match keys.len() {
-                    3 => ctx.find(keys[2]).unwrap().value.clone(),
-                    _ => acc.clone(),
-                };
-                return r;
-            }
-            "end" => {
-                return String::new();
-            }
-            _ => {}
         }
         i += 1;
     }

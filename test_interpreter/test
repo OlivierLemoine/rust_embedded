@@ -1,23 +1,23 @@
 def double a
-    call add a a
+    add a a
     return
 end
 
 def addBy6 a
-    call add a 6
+    add a 6
     return
 end
 
 def doubleAndAddBy6 a
-    call double a
+    double a
     > res
-    call print
-    call addBy6
+    print
+    addBy6
     return res
 end
 
-call double 2
-call print
-call addBy6 4
-call doubleAndAddBy6 3
-call print
+double 2
+print
+addBy6 4
+doubleAndAddBy6 3
+print
