@@ -7,6 +7,7 @@
 
 // Global memory locations.
 .global Reset_Handler
+.global SVC_Handler
 
 /*
  * The Reset handler. Called on reset.
@@ -63,3 +64,6 @@ reset_bss_loop:
 
 _exit:
     B   _exit
+
+SVC_Handler:
+    B swi_handler

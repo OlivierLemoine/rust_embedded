@@ -44,7 +44,7 @@ LFLAGS += -lgcc
 LFLAGS += -T$(LSCRIPT)
 ASM_FILES += ./boot/vector_table.S
 ASM_FILES += ./boot/core.S
-ASM_FILES += ./kernel/src/swi/swi.S
+# ASM_FILES += ./kernel/src/swi/swi.S
 RUST_SRC += ./src/main.rs
 RUST_FILES = $(shell find -type f -name '*.rs')
 OBJS =  $(ASM_FILES:.S=.o)
