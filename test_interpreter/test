@@ -1,10 +1,25 @@
-add 3 2
-print
-> tmp1
-sub tmp1 3
-print
-mul 10
-> tmp2
-print
-div tmp2 3
+def fibo n
+    eq n 0
+    if
+        add 0 0
+        return
+
+    endif
+    eq n 1
+    if
+        add 1 0
+        return 
+    endif
+    sub n 1
+    print
+    fibo
+    > r1
+    sub n 2
+    fibo
+    > r2
+    add r1 r2
+    return
+end
+
+fibo 2
 print

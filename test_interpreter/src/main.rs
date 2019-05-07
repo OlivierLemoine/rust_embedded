@@ -1,5 +1,12 @@
 use std::fs;
 
+enum Msg {
+    None,
+    Break,
+    Return,
+    Continue,
+}
+
 struct Var {
     name: String,
     value: String,
@@ -30,7 +37,7 @@ impl<'a> Ctx<'a> {
     }
 }
 
-fn interp(lines: &Vec<&str>, at: usize, mut ctx: Ctx) -> String {
+fn interp(lines: &Vec<&str>, at: usize, mut ctx: Ctx) -> (String, Msg) {
     let mut i = at;
 
     match ctx.parent {
@@ -51,7 +58,6 @@ fn interp(lines: &Vec<&str>, at: usize, mut ctx: Ctx) -> String {
         let keys: Vec<&str> = lines[i].trim().split(' ').collect();
         match keys[0] {
             "def" => {
-                // println!("add {}", keys[1]);
                 ctx.vars.push(Var {
                     name: String::from(keys[1]),
                     value: String::from(keys[1]),
@@ -71,10 +77,46 @@ fn interp(lines: &Vec<&str>, at: usize, mut ctx: Ctx) -> String {
                     2 => ctx.find(keys[1]).unwrap().value.clone(),
                     _ => acc.clone(),
                 };
-                return r;
+                return (r, Msg::Return);
             }
             "end" => {
-                return String::new();
+                return (acc, Msg::None);
+            }
+            "else" => {
+                let mut depth = 0;
+                while lines[i].trim() != "end" || depth != 0 {
+                    if lines[i].trim().starts_with("if") {
+                        depth += 1;
+                    }
+                    if lines[i].trim().starts_with("endif") {
+                        depth -= 1;
+                    }
+                    i += 1;
+                }
+            }
+            "endif" => {}
+            "if" => {
+                let boolean: f32 = match keys.len() {
+                    2 => match keys[1].parse() {
+                        Ok(v) => v,
+                        Err(_) => ctx.find(keys[1]).unwrap().value.parse().unwrap(),
+                    },
+                    _ => acc.parse().unwrap(),
+                };
+
+                if boolean != 0.0 {
+                } else {
+                    let mut depth = 0;
+                    while lines[i].trim() != "else" && lines[i].trim() != "end" || depth != 0 {
+                        if lines[i].trim().starts_with("if") {
+                            depth += 1;
+                        }
+                        if lines[i].trim().starts_with("endif") {
+                            depth -= 1;
+                        }
+                        i += 1;
+                    }
+                }
             }
             x => match ctx.find(x) {
                 Some(v) => {
@@ -96,7 +138,7 @@ fn interp(lines: &Vec<&str>, at: usize, mut ctx: Ctx) -> String {
                         line: 0,
                     });
 
-                    let a = interp(
+                    let (a, _) = interp(
                         lines,
                         v.line,
                         Ctx {
@@ -108,7 +150,7 @@ fn interp(lines: &Vec<&str>, at: usize, mut ctx: Ctx) -> String {
                     acc = a;
                 }
                 None => match x {
-                    func @ "add" | func @ "sub" | func @ "mul" | func @ "div" => {
+                    func @ "add" | func @ "sub" | func @ "mul" | func @ "div" | func @ "eq" => {
                         let r1: f32 = match keys.len() {
                             2 | 3 => match keys[1].parse() {
                                 Ok(v) => v,
@@ -142,6 +184,13 @@ fn interp(lines: &Vec<&str>, at: usize, mut ctx: Ctx) -> String {
                             "sub" => r1 - r2,
                             "mul" => r1 * r2,
                             "div" => r1 / r2,
+                            "eq" => {
+                                if r1 == r2 {
+                                    1.0
+                                } else {
+                                    0.0
+                                }
+                            }
                             _ => 0.0,
                         }
                         .to_string();
@@ -160,7 +209,7 @@ fn interp(lines: &Vec<&str>, at: usize, mut ctx: Ctx) -> String {
         i += 1;
     }
 
-    return String::new();
+    return (acc, Msg::None);
 }
 
 fn main() {
