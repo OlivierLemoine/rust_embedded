@@ -32,6 +32,20 @@ impl<'a> Ctx<'a> {
 
 fn interp(lines: &Vec<&str>, at: usize, mut ctx: Ctx) -> String {
     let mut i = at;
+
+    match ctx.parent {
+        Some(_) => {
+            let names: Vec<&str> = lines[i].trim().split(' ').collect();
+
+            for j in 2..names.len() {
+                ctx.vars[j - 2].name = String::from(names[j]);
+            }
+
+            i += 1;
+        }
+        None => {}
+    };
+
     let mut acc = String::new();
     while i < lines.len() {
         let keys: Vec<&str> = lines[i].trim().split(' ').collect();
@@ -41,7 +55,7 @@ fn interp(lines: &Vec<&str>, at: usize, mut ctx: Ctx) -> String {
                 ctx.vars.push(Var {
                     name: String::from(keys[1]),
                     value: String::from(keys[1]),
-                    line: i + 1,
+                    line: i,
                 });
                 while lines[i].trim() != "end" {
                     i += 1;
@@ -53,8 +67,8 @@ fn interp(lines: &Vec<&str>, at: usize, mut ctx: Ctx) -> String {
                     let mut vars: Vec<Var> = Vec::new();
                     for j in 2..keys.len() {
                         vars.push(Var {
-                            name: String::from("a"),
-                            value: String::new(),
+                            name: String::new(),
+                            value: String::from(keys[j]),
                             line: 0,
                         })
                     }
@@ -88,7 +102,11 @@ fn interp(lines: &Vec<&str>, at: usize, mut ctx: Ctx) -> String {
                         let r2: f32 = match keys.len() {
                             4 => match keys[3].parse() {
                                 Ok(v) => v,
-                                Err(_) => 0.0,
+                                Err(_) => {
+                                    let f = ctx.find(keys[3]).unwrap();
+                                    let v = f.value.parse().unwrap();
+                                    v
+                                }
                             },
                             _ => {
                                 let tmp: f32 = acc.parse().unwrap();

@@ -3,4 +3,10 @@ def double a
     return
 end
 
+def addBy6 a
+    call add a 6
+    return
+end
+
 call double 2
+call addBy6 4
