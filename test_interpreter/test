@@ -8,5 +8,16 @@ def addBy6 a
     return
 end
 
+def doubleAndAddBy6 a
+    call double a
+    > res
+    call print
+    call addBy6
+    return res
+end
+
 call double 2
+call print
 call addBy6 4
+call doubleAndAddBy6 3
+call print
