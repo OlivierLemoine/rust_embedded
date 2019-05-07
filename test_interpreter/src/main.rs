@@ -53,7 +53,7 @@ fn interp(lines: &Vec<&str>, at: usize, mut ctx: Ctx) -> String {
                     let mut vars: Vec<Var> = Vec::new();
                     for j in 2..keys.len() {
                         vars.push(Var {
-                            name: String::new(),
+                            name: String::from("a"),
                             value: String::new(),
                             line: 0,
                         })
@@ -71,7 +71,39 @@ fn interp(lines: &Vec<&str>, at: usize, mut ctx: Ctx) -> String {
                 }
                 None => match keys[1] {
                     "add" => {
-                        acc = String::from("0");
+                        let r1: f32 = match keys.len() {
+                            3 | 4 => match keys[2].parse() {
+                                Ok(v) => v,
+                                Err(_) => {
+                                    let f = ctx.find(keys[2]).unwrap();
+                                    let v = f.value.parse().unwrap();
+                                    v
+                                }
+                            },
+                            _ => {
+                                let tmp: f32 = acc.parse().unwrap();
+                                tmp
+                            }
+                        };
+                        let r2: f32 = match keys.len() {
+                            4 => match keys[3].parse() {
+                                Ok(v) => v,
+                                Err(_) => 0.0,
+                            },
+                            _ => {
+                                let tmp: f32 = acc.parse().unwrap();
+                                tmp
+                            }
+                        };
+                        // let (r1, r2): (f32, f32) = match keys.len() {
+                        //     3 => (keys[2].parse().unwrap(), acc.parse().unwrap()),
+                        //     4 => (keys[2].parse().unwrap(), keys[3].parse().unwrap()),
+                        //     _ => {
+                        //         let tmp: f32 = acc.parse().unwrap();
+                        //         (tmp, tmp)
+                        //     }
+                        // };
+                        acc = (r1 + r2).to_string();
                     }
                     _ => panic!("No function named {}", keys[1]),
                 },
