@@ -7,7 +7,7 @@ def fibo n
     eq n 1
     if
         $ 1
-        return 
+        return
     endif
     sub n 1
     fibo
@@ -19,5 +19,28 @@ def fibo n
     return
 end
 
-fibo 16
+def exp a n
+    eq n 1
+    if
+        return a
+    endif
+    sub n 1
+    exp a
+    mul a
+    return
+end
+
+def fact n
+    eq n 1
+    if
+        $ 1
+        return
+    endif
+    sub n 1
+    fact
+    mul n
+    return
+end
+
+exp 2.3 4
 print

@@ -1,5 +1,6 @@
 use std::fs;
-use std::{thread, time};
+
+mod interpreter;
 
 enum Msg {
     None,
@@ -238,4 +239,5 @@ fn main() {
     let file_content = String::from_utf8(fs::read("./test").unwrap()).unwrap();
     let lines: Vec<&str> = file_content.split("\n").collect();
     interp(&lines, 0, Ctx::new());
+    interpreter::run(&lines, 0, interpreter::Ctx::new());
 }
