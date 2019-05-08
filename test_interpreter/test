@@ -42,5 +42,31 @@ def fact n
     return
 end
 
-exp 2.3 4
+// $ "oui ceci est une string"
+// > str1
+// print
+// arr 1 str1 4 6 "yes"
+// > arr1
+// print
+
+// arr1[2]
+// print
+
+def testA fn
+    add 100 0
+    print
+    call fn 2
+    > res
+    add 200 0
+    print
+    return res
+end
+
+def testB a
+    add a 2
+    print
+    return
+end
+
+testA testB
 print

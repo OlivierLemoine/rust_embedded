@@ -1,6 +1,6 @@
 use std::fs;
 
-mod interpreter;
+pub mod interpreter;
 
 enum Msg {
     None,
@@ -60,6 +60,7 @@ fn interp(lines: &Vec<&str>, at: usize, mut ctx: Ctx) -> (String, Msg) {
         // println!("{} : {}", i, lines[i]);
         // thread::sleep(time::Duration::from_millis(2000));
         if lines[i].trim().starts_with("//") {
+            i += 1;
             continue;
         }
         let keys: Vec<&str> = lines[i].trim().split(' ').collect();
@@ -102,6 +103,39 @@ fn interp(lines: &Vec<&str>, at: usize, mut ctx: Ctx) -> (String, Msg) {
                 }
             }
             "endif" => {}
+            "call" => match ctx.find(keys[1]) {
+                Some(v) => {
+                    let mut vars: Vec<Var> = Vec::new();
+                    for j in 2..keys.len() {
+                        vars.push(Var {
+                            name: String::new(),
+                            value: match ctx.find(keys[j]) {
+                                Some(v) => v.value.clone(),
+                                None => String::from(keys[j]),
+                            },
+                            line: 0,
+                        })
+                    }
+
+                    vars.push(Var {
+                        name: String::new(),
+                        value: acc.clone(),
+                        line: 0,
+                    });
+
+                    let (a, _) = interp(
+                        lines,
+                        v.line,
+                        Ctx {
+                            vars,
+                            parent: Some(&ctx),
+                        },
+                    );
+
+                    acc = a;
+                }
+                None => panic!("Unknown function : {}", keys[1]),
+            },
             "if" => {
                 let boolean: f32 = match keys.len() {
                     2 => match keys[1].parse() {
@@ -238,6 +272,7 @@ fn interp(lines: &Vec<&str>, at: usize, mut ctx: Ctx) -> (String, Msg) {
 fn main() {
     let file_content = String::from_utf8(fs::read("./test").unwrap()).unwrap();
     let lines: Vec<&str> = file_content.split("\n").collect();
-    interp(&lines, 0, Ctx::new());
-    interpreter::run(&lines, 0, interpreter::Ctx::new());
+    // interp(&lines, 0, Ctx::new());
+    // println!("V2 : \r\n");
+    interpreter::run(&lines, 0, interpreter::ctx::Ctx::new());
 }
