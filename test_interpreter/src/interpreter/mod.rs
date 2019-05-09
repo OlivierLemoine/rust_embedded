@@ -66,6 +66,13 @@ pub fn run(lines: &Vec<&str>, at: usize, mut ctx: Ctx) -> (Var, Msg) {
                     ctx.vars.push(acc.clone());
                 }
             }
+            "$" => {
+                if words.len() < 2 {
+                    panic!("{} : No value", i + 1);
+                }
+
+                acc = get_value(words[1], &ctx, i);
+            }
             "return" => {
                 return (
                     if words.len() == 2 {
