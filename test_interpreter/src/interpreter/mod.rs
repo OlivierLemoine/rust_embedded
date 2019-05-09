@@ -22,14 +22,47 @@ pub fn run(lines: &Vec<&str>, at: usize, mut ctx: Ctx) -> (Var, Msg) {
     let mut acc = Var::new("", 0);
 
     while i < lines.len() {
-        let line = lines[i].trim();
+        let line: &str = lines[i].trim();
 
         if line.starts_with("//") || line == "" {
             i += 1;
             continue;
         }
 
-        let words: Vec<&str> = line.split(' ').collect();
+        let words: Vec<&str> = if !line.contains("\"") {
+            line.split(' ').collect()
+        } else {
+            let mut res: Vec<&str> = Vec::new();
+
+            let mut in_string = false;
+            let mut index = 0;
+
+            let working_line: Vec<char> = line.chars().collect();
+
+            for j in 0..line.len() {
+                let c = working_line[j];
+
+                if c == '"' && !in_string {
+                    in_string = true;
+                } else if c == '"' && in_string {
+                    in_string = false;
+                } else if c == ' ' && !in_string {
+                    if index != j {
+                        res.push(&line[index..j]);
+                    }
+                    index = j + 1;
+                }
+                if j == line.len() - 1 {
+                    res.push(&line[index..j + 1]);
+                }
+            }
+
+            res
+        };
+
+        if words.len() == 0 {
+            panic!("Error in parsing, probably not your fault");
+        }
 
         let key_word = words[0];
 
@@ -291,7 +324,9 @@ fn get_value(value: &str, ctx: &Ctx, at: usize) -> Var {
 fn parse_value(value: &str) -> Option<Var> {
     let v = value.trim();
 
-    if v == "true" {
+    if v.starts_with("\"") {
+        Some(Var::string("", &value[1..value.len() - 1]))
+    } else if v == "true" {
         Some(Var::boolean("", true))
     } else if v == "false" {
         Some(Var::boolean("", false))

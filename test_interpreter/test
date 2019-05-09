@@ -19,5 +19,11 @@ def fibo n
     return
 end
 
-fibo 22
+fibo 10
 print
+
+$ "Ceci est un test"
+> tmp1
+add 1 1
+print
+print tmp1
