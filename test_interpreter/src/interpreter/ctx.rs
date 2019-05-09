@@ -23,21 +23,29 @@ impl<'a> Ctx<'a> {
         }
     }
 
+    pub fn replace(&mut self, name: &str, new: Var) -> bool {
+        match self.vars.iter().position(|a| a.name == name) {
+            Some(index) => {
+                self.vars[index] = new;
+                true
+            }
+            None => false,
+        }
+    }
+
     pub fn cp_new_ctx(&mut self, line: &str) {
         let names: Vec<&str> = line.trim().split(' ').collect();
         for i in 2..names.len() {
-            if i - 2 < self.vars.len(){
-
-            self.vars[i - 2].name = String::from(names[i]);
-            }
-            else{
+            if i - 2 < self.vars.len() {
+                self.vars[i - 2].name = String::from(names[i]);
+            } else {
                 self.vars.push(Var::new(names[i], 0));
             }
         }
     }
 
-    pub fn is_root(&self) -> bool{
-        match self.parent{
+    pub fn is_root(&self) -> bool {
+        match self.parent {
             Some(_) => false,
             None => true,
         }

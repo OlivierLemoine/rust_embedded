@@ -30,6 +30,32 @@ impl Var {
         }
     }
 
+    pub fn replace(&mut self, other: &Var) {
+
+        let mut arr_value: Vec<Var> = Vec::new();
+
+        for i in self.arr_value.iter() {
+            arr_value.push(i.clone());
+        }
+
+        let var_type = match other.var_type {
+            VarType::None => VarType::None,
+            VarType::Number => VarType::Number,
+            VarType::String => VarType::String,
+            VarType::Bool => VarType::Bool,
+            VarType::Array => VarType::Array,
+            VarType::Function => VarType::Function,
+        };
+
+        self.name = other.name.clone();
+        self.var_type = var_type;
+        self.num_value = other.num_value;
+        self.str_value = other.str_value.clone();
+        self.bool_value = other.bool_value;
+        self.arr_value = arr_value;
+        self.line_def = other.line_def;
+    }
+
     pub fn clone(&self) -> Var {
         let mut arr_value: Vec<Var> = Vec::new();
 

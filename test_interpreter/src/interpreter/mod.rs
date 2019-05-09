@@ -36,19 +36,11 @@ pub fn run(lines: &Vec<&str>, at: usize, mut ctx: Ctx) -> (Var, Msg) {
         match key_word {
             "def" => {
                 if words.len() < 2 {
-                    panic!("Missing function name");
+                    panic!("{} : Missing function name", i);
                 }
                 ctx.vars.push(Var::function(words[1], i));
 
                 let mut depth = 0;
-
-                // while lines[i].trim() != "end" || depth != 0 {
-                //     i += 1;
-                //     if lines[i].trim() == "def"{
-                //         depth += 1;
-                //     }
-                //     else if lines[i].trim() == "def"
-                // }
 
                 loop {
                     i += 1;
@@ -65,7 +57,15 @@ pub fn run(lines: &Vec<&str>, at: usize, mut ctx: Ctx) -> (Var, Msg) {
                     }
                 }
             }
-            ">" => {}
+            ">" => {
+                if words.len() < 2 {
+                    panic!("{} : Missing variable name", i);
+                }
+
+                if !ctx.replace(words[1], acc.clone()) {
+                    ctx.vars.push(acc.clone());
+                }
+            }
             "return" => {
                 return (
                     if words.len() == 2 {
@@ -79,14 +79,74 @@ pub fn run(lines: &Vec<&str>, at: usize, mut ctx: Ctx) -> (Var, Msg) {
                     Msg::Return,
                 );
             }
-            "end" => {}
-            _ => {}
+            "end" => {
+                return (acc, Msg::None);
+            }
+            "call" => {}
+            "if" => {}
+            "else" => {}
+            "endif" => {}
+            x => match ctx.find(x) {
+                Some(v) => {}
+                None => match x {
+                    func @ "add" | func @ "sub" | func @ "mul" | func @ "div" | func @ "eq" => {
+                        let r1: Var = if words.len() > 1 {
+                            get_value(words[1], &ctx, i)
+                        } else {
+                            acc.clone()
+                        };
+
+                        let r2: Var = if words.len() > 2 {
+                            get_value(words[2], &ctx, i)
+                        } else {
+                            acc.clone()
+                        };
+
+                        acc = match func {
+                            "eq" => Var::boolean("", r1.get_number() == r2.get_number()),
+                            x => Var::number(
+                                "",
+                                match x {
+                                    "add" => r1.get_number() + r2.get_number(),
+                                    "sub" => r1.get_number() - r2.get_number(),
+                                    "mul" => r1.get_number() * r2.get_number(),
+                                    "div" => r1.get_number() / r2.get_number(),
+                                    _ => 0.0,
+                                },
+                            ),
+                        }
+                    }
+                    func @ "print" => {
+                        let r1: Var = if words.len() > 1 {
+                            get_value(words[1], &ctx, i)
+                        } else {
+                            acc.clone()
+                        };
+
+                        match func {
+                            "print" => println!("{}", r1.get_string()),
+                            _ => {}
+                        }
+                    }
+                    _ => panic!("{} : Unknown function {}", i, x),
+                },
+            },
         }
 
         i += 1;
     }
 
     (Var::new("", 0), Msg::None)
+}
+
+fn get_value(value: &str, ctx: &Ctx, at: usize) -> Var {
+    match parse_value(value) {
+        Some(v) => v,
+        None => match ctx.find(value) {
+            Some(v) => v.clone(),
+            None => panic!("{} : Unknown variable name {}", at, value),
+        },
+    }
 }
 
 fn parse_value(value: &str) -> Option<Var> {
