@@ -1,29 +1,30 @@
-def fibo n
+def fibo n x1 x2
     eq n 0
-    if
-        return 0
+    if 
+        return x1
     endif
-    
+
     eq n 1
     if
-        return 1
+        return x2
     endif
 
     sub n 1
-    fibo
-    > res1
+    > index
 
-    sub n 2
-    fibo
-    add res1
+    add x1 x2
+    > new_x2
+
+    fibo index x2 new_x2
+end
+
+def fib n
+    fibo n 0 1
     return
 end
 
-fibo 10
+fib 100
 print
 
 $ "Ceci est un test"
-> tmp1
-add 1 1
 print
-print tmp1
