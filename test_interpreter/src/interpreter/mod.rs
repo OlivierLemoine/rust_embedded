@@ -82,7 +82,28 @@ pub fn run(lines: &Vec<&str>, at: usize, mut ctx: Ctx) -> (Var, Msg) {
             "end" => {
                 return (acc, Msg::None);
             }
-            "call" => {}
+            "call" => match ctx.find(words[1]) {
+                Some(v) => {
+                    let mut vars: Vec<Var> = Vec::new();
+                    for j in 2..words.len() {
+                        vars.push(get_value(words[j], &ctx, i));
+                    }
+
+                    vars.push(acc.clone());
+
+                    let (res, _) = run(
+                        lines,
+                        v.line_def,
+                        Ctx {
+                            vars,
+                            parent: Some(&ctx),
+                        },
+                    );
+
+                    acc = res;
+                }
+                None => panic!("{} : Unknown function {}", i + 1, words[1]),
+            },
             "if" => {}
             "else" => {}
             "endif" => {}

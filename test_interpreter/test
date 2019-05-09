@@ -1,7 +1,17 @@
+def test a
+    add a 3
+    return
+end
+
+def useFn fn
+    call fn 2
+    return
+end
+
 def double a
     add a a
     return
 end
 
-double 10
+useFn test
 print
