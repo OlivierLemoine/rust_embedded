@@ -30,32 +30,6 @@ impl Var {
         }
     }
 
-    pub fn replace(&mut self, other: &Var) {
-
-        let mut arr_value: Vec<Var> = Vec::new();
-
-        for i in self.arr_value.iter() {
-            arr_value.push(i.clone());
-        }
-
-        let var_type = match other.var_type {
-            VarType::None => VarType::None,
-            VarType::Number => VarType::Number,
-            VarType::String => VarType::String,
-            VarType::Bool => VarType::Bool,
-            VarType::Array => VarType::Array,
-            VarType::Function => VarType::Function,
-        };
-
-        self.name = other.name.clone();
-        self.var_type = var_type;
-        self.num_value = other.num_value;
-        self.str_value = other.str_value.clone();
-        self.bool_value = other.bool_value;
-        self.arr_value = arr_value;
-        self.line_def = other.line_def;
-    }
-
     pub fn clone(&self) -> Var {
         let mut arr_value: Vec<Var> = Vec::new();
 
@@ -74,6 +48,33 @@ impl Var {
 
         Var {
             name: self.name.clone(),
+            var_type,
+            num_value: self.num_value,
+            str_value: self.str_value.clone(),
+            bool_value: self.bool_value,
+            arr_value,
+            line_def: self.line_def,
+        }
+    }
+
+    pub fn clone_and_rename(&self, name: &str) -> Var {
+        let mut arr_value: Vec<Var> = Vec::new();
+
+        for i in self.arr_value.iter() {
+            arr_value.push(i.clone());
+        }
+
+        let var_type = match self.var_type {
+            VarType::None => VarType::None,
+            VarType::Number => VarType::Number,
+            VarType::String => VarType::String,
+            VarType::Bool => VarType::Bool,
+            VarType::Array => VarType::Array,
+            VarType::Function => VarType::Function,
+        };
+
+        Var {
+            name: String::from(name),
             var_type,
             num_value: self.num_value,
             str_value: self.str_value.clone(),
@@ -193,6 +194,20 @@ impl Var {
                 res
             }
             VarType::Function => format!("{} at {}", self.name, self.line_def),
+        }
+    }
+
+    pub fn get_bool(&self) -> bool {
+        match self.var_type {
+            VarType::None => false,
+            VarType::Number => !(self.num_value == 0.0),
+            VarType::String => match self.str_value.as_str() {
+                "true" => true,
+                _ => false,
+            },
+            VarType::Bool => self.bool_value,
+            VarType::Array => panic!("A function can't be converted into a boolean"),
+            VarType::Function => panic!("A function can't be converted into a boolean"),
         }
     }
 }

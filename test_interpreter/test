@@ -1,17 +1,23 @@
-def test a
-    add a 3
+def fibo n
+    eq n 0
+    if
+        return 0
+    endif
+    
+    eq n 1
+    if
+        return 1
+    endif
+
+    sub n 1
+    fibo
+    > res1
+
+    sub n 2
+    fibo
+    add res1
     return
 end
 
-def useFn fn
-    call fn 2
-    return
-end
-
-def double a
-    add a a
-    return
-end
-
-useFn test
+fibo 22
 print

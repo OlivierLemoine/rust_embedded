@@ -47,7 +47,7 @@ pub fn run(lines: &Vec<&str>, at: usize, mut ctx: Ctx) -> (Var, Msg) {
 
                     let new_l = lines[i].trim();
 
-                    if new_l == "def" {
+                    if new_l.starts_with("def") {
                         depth += 1;
                     } else if new_l == "end" {
                         depth -= 1;
@@ -63,7 +63,7 @@ pub fn run(lines: &Vec<&str>, at: usize, mut ctx: Ctx) -> (Var, Msg) {
                 }
 
                 if !ctx.replace(words[1], acc.clone()) {
-                    ctx.vars.push(acc.clone());
+                    ctx.vars.push(acc.clone_and_rename(words[1]));
                 }
             }
             "$" => {
@@ -111,9 +111,102 @@ pub fn run(lines: &Vec<&str>, at: usize, mut ctx: Ctx) -> (Var, Msg) {
                 }
                 None => panic!("{} : Unknown function {}", i + 1, words[1]),
             },
-            "if" => {}
-            "else" => {}
-            "endif" => {}
+            "if" => {
+                let b: bool = if words.len() > 1 {
+                    get_value(words[1], &ctx, i)
+                } else {
+                    acc.clone()
+                }
+                .get_bool();
+
+                if b {
+                    let mut vars: Vec<Var> = Vec::new();
+
+                    vars.push(acc.clone());
+
+                    let (res, msg) = run(
+                        lines,
+                        i,
+                        Ctx {
+                            vars,
+                            parent: Some(&ctx),
+                        },
+                    );
+
+                    acc = res;
+
+                    match msg {
+                        Msg::Break | Msg::Continue | Msg::None => {}
+                        Msg::Return => {
+                            return (acc, Msg::None);
+                        }
+                    }
+
+                    let mut depth = 0;
+                    loop {
+                        i += 1;
+
+                        let new_l = lines[i].trim();
+
+                        if new_l.starts_with("if") {
+                            depth += 1;
+                        }
+                        if new_l == "endif" {
+                            depth -= 1;
+                        }
+                        if depth < 0 {
+                            break;
+                        }
+                    }
+                } else {
+                    let mut depth = 0;
+                    loop {
+                        i += 1;
+
+                        let new_l = lines[i].trim();
+
+                        if new_l.starts_with("if") {
+                            depth += 1;
+                        }
+                        if new_l == "endif" {
+                            depth -= 1;
+                        }
+                        if depth < 0 {
+                            break;
+                        }
+
+                        if depth == 0 && new_l == "else" {
+                            let mut vars: Vec<Var> = Vec::new();
+
+                            vars.push(acc.clone());
+
+                            let (res, msg) = run(
+                                lines,
+                                i,
+                                Ctx {
+                                    vars,
+                                    parent: Some(&ctx),
+                                },
+                            );
+
+                            acc = res;
+
+                            match msg {
+                                Msg::Break | Msg::Continue | Msg::None => {}
+                                Msg::Return => {
+                                    return (acc, Msg::None);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            "else" => {
+                return (acc, Msg::None);
+            }
+            "endif" => {
+                return (acc, Msg::None);
+            }
             x => match ctx.find(x) {
                 Some(v) => {
                     let mut vars: Vec<Var> = Vec::new();
