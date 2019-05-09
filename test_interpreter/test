@@ -1,2 +1,7 @@
-add 1 2
+def double a
+    add a a
+    return
+end
+
+double 10
 print

@@ -24,7 +24,7 @@ pub fn run(lines: &Vec<&str>, at: usize, mut ctx: Ctx) -> (Var, Msg) {
     while i < lines.len() {
         let line = lines[i].trim();
 
-        if line.starts_with("//") {
+        if line.starts_with("//") || line == "" {
             i += 1;
             continue;
         }
@@ -36,7 +36,7 @@ pub fn run(lines: &Vec<&str>, at: usize, mut ctx: Ctx) -> (Var, Msg) {
         match key_word {
             "def" => {
                 if words.len() < 2 {
-                    panic!("{} : Missing function name", i);
+                    panic!("{} : Missing function name", i + 1);
                 }
                 ctx.vars.push(Var::function(words[1], i));
 
@@ -59,7 +59,7 @@ pub fn run(lines: &Vec<&str>, at: usize, mut ctx: Ctx) -> (Var, Msg) {
             }
             ">" => {
                 if words.len() < 2 {
-                    panic!("{} : Missing variable name", i);
+                    panic!("{} : Missing variable name", i + 1);
                 }
 
                 if !ctx.replace(words[1], acc.clone()) {
@@ -87,7 +87,25 @@ pub fn run(lines: &Vec<&str>, at: usize, mut ctx: Ctx) -> (Var, Msg) {
             "else" => {}
             "endif" => {}
             x => match ctx.find(x) {
-                Some(v) => {}
+                Some(v) => {
+                    let mut vars: Vec<Var> = Vec::new();
+                    for j in 1..words.len() {
+                        vars.push(get_value(words[j], &ctx, i));
+                    }
+
+                    vars.push(acc.clone());
+
+                    let (res, _) = run(
+                        lines,
+                        v.line_def,
+                        Ctx {
+                            vars,
+                            parent: Some(&ctx),
+                        },
+                    );
+
+                    acc = res;
+                }
                 None => match x {
                     func @ "add" | func @ "sub" | func @ "mul" | func @ "div" | func @ "eq" => {
                         let r1: Var = if words.len() > 1 {
@@ -128,7 +146,7 @@ pub fn run(lines: &Vec<&str>, at: usize, mut ctx: Ctx) -> (Var, Msg) {
                             _ => {}
                         }
                     }
-                    _ => panic!("{} : Unknown function {}", i, x),
+                    _ => panic!("{} : Unknown function {}", i + 1, x),
                 },
             },
         }
@@ -144,7 +162,7 @@ fn get_value(value: &str, ctx: &Ctx, at: usize) -> Var {
         Some(v) => v,
         None => match ctx.find(value) {
             Some(v) => v.clone(),
-            None => panic!("{} : Unknown variable name {}", at, value),
+            None => panic!("{} : Unknown variable name {}", at + 1, value),
         },
     }
 }
