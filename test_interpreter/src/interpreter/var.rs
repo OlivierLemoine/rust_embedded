@@ -191,8 +191,10 @@ impl Var {
                     res.push_str(s.as_str());
                     res.push_str(", ");
                 }
-                res.remove(res.len() - 1);
-                res.remove(res.len() - 1);
+                if res.len() > 3 {
+                    res.remove(res.len() - 1);
+                    res.remove(res.len() - 1);
+                }
                 res.push(']');
 
                 res
@@ -231,8 +233,27 @@ impl Var {
                 res
             }
             VarType::Bool => vec![self.clone()],
-            VarType::Array => vec![self.clone()],
+            VarType::Array => {
+                let mut res: Vec<Var> = Vec::new();
+
+                for i in &self.arr_value {
+                    res.push(i.clone());
+                }
+
+                res
+            }
             VarType::Function => panic!("A function can't be converted into an array"),
+        }
+    }
+
+    pub fn push(&mut self, v: Var) {
+        self.arr_value.push(v);
+    }
+
+    pub fn pop(&mut self) -> Var {
+        match self.arr_value.pop() {
+            Some(v) => v,
+            None => Var::new("", 0),
         }
     }
 }

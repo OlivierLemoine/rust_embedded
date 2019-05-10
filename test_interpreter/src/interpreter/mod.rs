@@ -4,6 +4,8 @@ mod var;
 use ctx::Ctx;
 use var::Var;
 
+pub static mut DEBUG: bool = false;
+
 pub enum Msg {
     None,
     Break,
@@ -62,6 +64,34 @@ pub fn run(lines: &Vec<&str>, at: usize, mut ctx: Ctx) -> (Var, Msg) {
 
         if words.len() == 0 {
             panic!("Error in parsing, probably not your fault");
+        }
+
+        if unsafe { DEBUG } {
+            println!("{} : {}", i + 1, line);
+            let mut tmp = String::new();
+            std::io::stdin().read_line(&mut tmp).unwrap();
+            let mut input = tmp.split(" ");
+            match input.next() {
+                Some(v) => match v.trim() {
+                    "s" => {}
+                    "p" => {
+                        println!(
+                            "{}",
+                            match input.next() {
+                                Some(v) => match ctx.find(v.trim()) {
+                                    Some(value) => value.get_string(),
+                                    None => String::from("Unknown variable"),
+                                },
+                                None => acc.get_string(),
+                            }
+                        );
+                        continue;
+                    }
+                    "" => {}
+                    _ => continue,
+                },
+                None => {}
+            }
         }
 
         let key_word = words[0];
@@ -300,8 +330,8 @@ pub fn run(lines: &Vec<&str>, at: usize, mut ctx: Ctx) -> (Var, Msg) {
                             _ => {}
                         }
                     }
-                    "at" => {
-                        let r1: Var = if words.len() > 2 {
+                    func @ "at" | func @ "push" => {
+                        let mut r1: Var = if words.len() > 2 {
                             get_value(words[1], &ctx, i)
                         } else {
                             acc.clone()
@@ -312,14 +342,23 @@ pub fn run(lines: &Vec<&str>, at: usize, mut ctx: Ctx) -> (Var, Msg) {
                             get_value(words[1], &ctx, i)
                         };
 
-                        let v1 = r1.get_array();
-                        let v2 = r2.get_number() as usize;
+                        match func {
+                            "at" => {
+                                let v1 = r1.get_array();
+                                let v2 = r2.get_number() as usize;
 
-                        acc = if v2 < v1.len() {
-                            r1.get_array()[r2.get_number() as usize].clone()
-                        } else {
-                            Var::new("", 0)
-                        };
+                                acc = if v2 < v1.len() {
+                                    r1.get_array()[r2.get_number() as usize].clone()
+                                } else {
+                                    Var::new("", 0)
+                                };
+                            }
+                            "push" => {
+                                r1.push(r2);
+                                acc = r1;
+                            }
+                            _ => {}
+                        }
                     }
                     "len" => {
                         let r1 = if words.len() > 1 {
@@ -334,8 +373,17 @@ pub fn run(lines: &Vec<&str>, at: usize, mut ctx: Ctx) -> (Var, Msg) {
                         let mut vars: Vec<Var> = Vec::new();
 
                         for j in 1..words.len() {
-                            println!("{}", words[j]);
                             vars.push(get_value(words[j], &ctx, i));
+                        }
+
+                        acc = Var::array("", vars);
+                    }
+                    "concat" => {
+                        let mut vars: Vec<Var> = Vec::new();
+
+                        for j in 1..words.len() {
+                            let mut tmp = get_value(words[j], &ctx, i).get_array();
+                            vars.append(&mut tmp);
                         }
 
                         acc = Var::array("", vars);

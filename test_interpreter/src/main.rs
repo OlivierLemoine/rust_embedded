@@ -270,9 +270,14 @@ fn interp(lines: &Vec<&str>, at: usize, mut ctx: Ctx) -> (String, Msg) {
 }
 
 fn main() {
+    let args: Vec<String> = std::env::args().collect();
+    if args.len() > 1 {
+        if args[1] == "-d" {
+            unsafe { interpreter::DEBUG = true };
+        }
+    }
+
     let file_content = String::from_utf8(fs::read("./test.nc").unwrap()).unwrap();
     let lines: Vec<&str> = file_content.split("\n").collect();
-    // interp(&lines, 0, Ctx::new());
-    // println!("V2 : \r\n");
     interpreter::run(&lines, 0, interpreter::ctx::Ctx::new());
 }

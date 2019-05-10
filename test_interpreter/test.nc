@@ -1,38 +1,38 @@
-def fibo n x1 x2
-    eq n 0
-    if 
-        return x1
-    endif
-
-    eq n 1
+def _map function array index
+    eq index 0
     if
-        return x2
+        at array index
+        call function
+        > tmp
+        arr tmp
+        return
     endif
-
-    sub n 1
-    > index
-
-    add x1 x2
-    > new_x2
-
-    fibo index x2 new_x2
-end
-
-def fib n
-    fibo n 0 1
+    sub index 1
+    _map function array
+    > res
+    at array index
+    call function
+    > tmp
+    arr tmp
+    > tmp2
+    concat res tmp2
     return
 end
 
-fib 2
-print
+def map function array
+    len array
+    > v
+    sub v 1
+    _map function array
+    return
+end
+
+def test v
+    add v 10
+    return
+end
 
 arr 1 2 3
-> a
-at a 0
 print
-
-$ "Ceci est un test"
-// print
-print
-len
+map test
 print
