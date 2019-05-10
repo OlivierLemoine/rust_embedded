@@ -17,3 +17,6 @@ end
 
 fibo 0 1 50
 print
+
+fibo 0 1 100
+print
