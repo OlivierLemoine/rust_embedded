@@ -392,7 +392,6 @@ pub fn run(lines: &Vec<&str>, at: usize, mut ctx: Ctx) -> (Var, Msg) {
                 },
             },
         }
-
         i += 1;
     }
 

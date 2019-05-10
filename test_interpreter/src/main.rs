@@ -10,7 +10,7 @@ fn main() {
         }
     }
 
-    let file_content = String::from_utf8(fs::read("./test.nc").unwrap()).unwrap();
+    let file_content = String::from_utf8(fs::read("./test.nsc").unwrap()).unwrap();
     let lines: Vec<&str> = file_content.split("\n").collect();
     interpreter::run(&lines, 0, interpreter::ctx::Ctx::new());
 }
