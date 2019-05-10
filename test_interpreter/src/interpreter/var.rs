@@ -184,12 +184,16 @@ impl Var {
                 }
             }
             VarType::Array => {
-                let mut res = String::from("");
+                let mut res = String::from("[");
 
                 for i in self.arr_value.iter() {
                     let s = i.get_string();
                     res.push_str(s.as_str());
+                    res.push_str(", ");
                 }
+                res.remove(res.len() - 1);
+                res.remove(res.len() - 1);
+                res.push(']');
 
                 res
             }
@@ -208,6 +212,27 @@ impl Var {
             VarType::Bool => self.bool_value,
             VarType::Array => panic!("A function can't be converted into a boolean"),
             VarType::Function => panic!("A function can't be converted into a boolean"),
+        }
+    }
+
+    pub fn get_array(&self) -> Vec<Var> {
+        match self.var_type {
+            VarType::None => Vec::with_capacity(1),
+            VarType::Number => vec![self.clone()],
+            VarType::String => {
+                let mut res: Vec<Var> = Vec::new();
+
+                for i in self.str_value.chars() {
+                    let mut s = String::new();
+                    s.push(i);
+                    res.push(Var::string("", s.as_str()));
+                }
+
+                res
+            }
+            VarType::Bool => vec![self.clone()],
+            VarType::Array => vec![self.clone()],
+            VarType::Function => panic!("A function can't be converted into an array"),
         }
     }
 }

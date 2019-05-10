@@ -270,7 +270,7 @@ fn interp(lines: &Vec<&str>, at: usize, mut ctx: Ctx) -> (String, Msg) {
 }
 
 fn main() {
-    let file_content = String::from_utf8(fs::read("./test").unwrap()).unwrap();
+    let file_content = String::from_utf8(fs::read("./test.nc").unwrap()).unwrap();
     let lines: Vec<&str> = file_content.split("\n").collect();
     // interp(&lines, 0, Ctx::new());
     // println!("V2 : \r\n");

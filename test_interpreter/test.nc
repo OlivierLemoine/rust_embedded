@@ -23,8 +23,16 @@ def fib n
     return
 end
 
-fib 100
+fib 2
+print
+
+arr 1 2 3
+> a
+at a 0
 print
 
 $ "Ceci est un test"
+// print
+print
+len
 print

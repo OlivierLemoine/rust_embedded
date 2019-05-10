@@ -300,6 +300,46 @@ pub fn run(lines: &Vec<&str>, at: usize, mut ctx: Ctx) -> (Var, Msg) {
                             _ => {}
                         }
                     }
+                    "at" => {
+                        let r1: Var = if words.len() > 2 {
+                            get_value(words[1], &ctx, i)
+                        } else {
+                            acc.clone()
+                        };
+                        let r2: Var = if words.len() > 2 {
+                            get_value(words[2], &ctx, i)
+                        } else {
+                            get_value(words[1], &ctx, i)
+                        };
+
+                        let v1 = r1.get_array();
+                        let v2 = r2.get_number() as usize;
+
+                        acc = if v2 < v1.len() {
+                            r1.get_array()[r2.get_number() as usize].clone()
+                        } else {
+                            Var::new("", 0)
+                        };
+                    }
+                    "len" => {
+                        let r1 = if words.len() > 1 {
+                            get_value(words[1], &ctx, i)
+                        } else {
+                            acc.clone()
+                        };
+
+                        acc = Var::number("", r1.get_array().len() as f32);
+                    }
+                    "arr" => {
+                        let mut vars: Vec<Var> = Vec::new();
+
+                        for j in 1..words.len() {
+                            println!("{}", words[j]);
+                            vars.push(get_value(words[j], &ctx, i));
+                        }
+
+                        acc = Var::array("", vars);
+                    }
                     _ => panic!("{} : Unknown function {}", i + 1, x),
                 },
             },
