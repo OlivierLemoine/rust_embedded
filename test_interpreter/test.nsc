@@ -1,22 +1,52 @@
-def fibo x1 x2 n
-    eq n 0
-    if
-        arr x1
+def remove_first_element array
+    def _rem _array n
+        eq n 0
+        if
+            arr
+            return
+        endif
+        sub n 1
+        _rem _array
+        > tmp1
+        at _array n
+        > tmp2
+        push tmp1 tmp2
         return
-    endif
-    add x1 x2
-    > y2
-    arr x1
-    > tmp
-    sub n 1
-    fibo x2 y2
-    > tmp2
-    concat tmp tmp2
+    end
+    len array
+    > l
+    sub l 1
+    _rem array
     return
 end
 
-fibo 0 1 50
-print
+def fn1 data
+    at data 0
+    add 2
+    > res1
+    arr res1
+    > res2
+    
+    remove_first_element data
+    > data
+    at data 0
+    > cb
 
-fibo 0 1 100
+    remove_first_element data
+    > res3
+    concat res2 res3
+    
+    call cb
+    
+    return
+end
+
+def fn2 data
+    at data 0
+    mul 1.5
+    return
+end
+
+arr 2 fn1 fn2
+fn1
 print

@@ -4,8 +4,6 @@ mod var;
 use ctx::Ctx;
 use var::Var;
 
-pub static mut DEBUG: bool = false;
-
 pub enum Msg {
     None,
     Break,
@@ -13,7 +11,23 @@ pub enum Msg {
     Continue,
 }
 
-pub fn run(lines: &Vec<&str>, at: usize, mut ctx: Ctx) -> (Var, Msg) {
+pub struct DebugParams {
+    pub is_on: bool,
+    pub is_continue: bool,
+    pub breakpoints: Vec<usize>,
+}
+
+impl DebugParams {
+    pub fn new() -> DebugParams {
+        DebugParams {
+            is_on: false,
+            is_continue: false,
+            breakpoints: Vec::new(),
+        }
+    }
+}
+
+pub fn run(lines: &Vec<&str>, at: usize, mut ctx: Ctx, debug: &mut DebugParams) -> (Var, Msg) {
     let mut i = at;
 
     if !ctx.is_root() {
@@ -66,31 +80,62 @@ pub fn run(lines: &Vec<&str>, at: usize, mut ctx: Ctx) -> (Var, Msg) {
             panic!("Error in parsing, probably not your fault");
         }
 
-        if unsafe { DEBUG } {
-            println!("{} : {}", i + 1, line);
-            let mut tmp = String::new();
-            std::io::stdin().read_line(&mut tmp).unwrap();
-            let mut input = tmp.split(" ");
-            match input.next() {
-                Some(v) => match v.trim() {
-                    "s" => {}
-                    "p" => {
-                        println!(
-                            "{}",
-                            match input.next() {
-                                Some(v) => match ctx.find(v.trim()) {
-                                    Some(value) => value.get_string(),
-                                    None => String::from("Unknown variable"),
-                                },
-                                None => acc.get_string(),
+        if debug.is_on {
+            if !debug.is_continue {
+                println!("{} : {}", i + 1, line);
+                let mut tmp = String::new();
+                std::io::stdin().read_line(&mut tmp).unwrap();
+                let mut input = tmp.split(" ");
+                match input.next() {
+                    Some(v) => match v.trim() {
+                        "s" => {}
+                        "p" => {
+                            println!(
+                                "{}",
+                                match input.next() {
+                                    Some(v) => match ctx.find(v.trim()) {
+                                        Some(value) => value.get_string(),
+                                        None => String::from("Unknown variable"),
+                                    },
+                                    None => acc.get_string(),
+                                }
+                            );
+                            continue;
+                        }
+                        "b" => {
+                            let next_string = match input.next() {
+                                Some(v) => v,
+                                None => "",
                             }
-                        );
-                        continue;
-                    }
-                    "" => {}
-                    _ => continue,
-                },
-                None => {}
+                            .trim();
+                            match next_string.parse::<usize>() {
+                                Ok(bp_line) => {
+                                    if debug.breakpoints.contains(&bp_line) {
+                                        let index = debug
+                                            .breakpoints
+                                            .iter()
+                                            .position(|&r| r == bp_line)
+                                            .unwrap();
+                                        debug.breakpoints.remove(index);
+                                    } else {
+                                        debug.breakpoints.push(bp_line);
+                                    }
+                                }
+                                Err(_) => println!("{:?}", debug.breakpoints),
+                            };
+                            continue;
+                        }
+                        "c" => {
+                            debug.is_continue = true;
+                        }
+                        "" => {}
+                        _ => continue,
+                    },
+                    None => {}
+                }
+            } else if debug.breakpoints.contains(&(i + 1)) {
+                debug.is_continue = false;
+                continue;
             }
         }
 
@@ -125,7 +170,7 @@ pub fn run(lines: &Vec<&str>, at: usize, mut ctx: Ctx) -> (Var, Msg) {
                     panic!("{} : Missing variable name", i + 1);
                 }
 
-                if !ctx.replace(words[1], acc.clone()) {
+                if !ctx.replace(words[1], acc.clone_and_rename(words[1])) {
                     ctx.vars.push(acc.clone_and_rename(words[1]));
                 }
             }
@@ -168,6 +213,7 @@ pub fn run(lines: &Vec<&str>, at: usize, mut ctx: Ctx) -> (Var, Msg) {
                             vars,
                             parent: Some(&ctx),
                         },
+                        debug,
                     );
 
                     acc = res;
@@ -194,6 +240,7 @@ pub fn run(lines: &Vec<&str>, at: usize, mut ctx: Ctx) -> (Var, Msg) {
                             vars,
                             parent: Some(&ctx),
                         },
+                        debug,
                     );
 
                     acc = res;
@@ -250,6 +297,7 @@ pub fn run(lines: &Vec<&str>, at: usize, mut ctx: Ctx) -> (Var, Msg) {
                                     vars,
                                     parent: Some(&ctx),
                                 },
+                                debug,
                             );
 
                             acc = res;
@@ -286,6 +334,7 @@ pub fn run(lines: &Vec<&str>, at: usize, mut ctx: Ctx) -> (Var, Msg) {
                             vars,
                             parent: Some(&ctx),
                         },
+                        debug,
                     );
 
                     acc = res;

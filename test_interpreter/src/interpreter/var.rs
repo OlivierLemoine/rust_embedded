@@ -199,7 +199,7 @@ impl Var {
 
                 res
             }
-            VarType::Function => format!("{} at {}", self.name, self.line_def),
+            VarType::Function => format!("{}: line {}", self.name, self.line_def + 1),
         }
     }
 
