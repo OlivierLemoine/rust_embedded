@@ -1,11 +1,11 @@
-pub struct Scope{
-
+pub struct Scope<'a> {
+    code: Vec<&'a str>,
 }
 
-impl Scope{
-    pub fn new() -> Scope{
-        Scope{
-            
-        }
+impl<'a> Scope<'a> {
+    pub fn new(code: Vec<&str>) -> Scope {
+        Scope { code }
     }
+
+    pub fn run(&self) {}
 }
