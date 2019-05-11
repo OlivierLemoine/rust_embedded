@@ -1,6 +1,7 @@
 use std::fs;
 
 pub mod interpreter;
+mod interpreter_v3;
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
@@ -16,4 +17,7 @@ fn main() {
     let file_content = String::from_utf8(fs::read("./test.nsc").unwrap()).unwrap();
     let lines: Vec<&str> = file_content.split("\n").collect();
     interpreter::run(&lines, 0, interpreter::ctx::Ctx::new(), &mut debug);
+
+    let interp = interpreter_v3::Interpreter::new(file_content.as_str());
+    interp.start();
 }
