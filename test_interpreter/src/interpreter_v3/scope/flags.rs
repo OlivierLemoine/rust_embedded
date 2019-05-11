@@ -1,3 +1,4 @@
+#[derive(Clone)]
 pub struct Flags{
     is_finished: bool,
 }

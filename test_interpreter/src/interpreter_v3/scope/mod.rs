@@ -6,6 +6,7 @@ use code_list::CodeList;
 use flags::Flags;
 use var::Var;
 
+#[derive(Clone)]
 pub struct Scope<'a> {
     code: Vec<&'a str>,
     flags: Flags,
@@ -23,7 +24,7 @@ impl<'a> Scope<'a> {
             flags: Flags::new(),
 
             vars: Vec::new(),
-            acc: Var::new(),
+            acc: Var::new(None),
 
             instruction_pointer: 0,
         }
@@ -43,6 +44,7 @@ impl<'a> Scope<'a> {
 
         match instruction {
             CodeList::Null => {}
+            CodeList::Attribution => {}
             CodeList::Def => {}
             CodeList::Call => {}
         }
@@ -57,6 +59,40 @@ impl<'a> Scope<'a> {
             return (CodeList::Null, Vec::new());
         }
 
-        (CodeList::Null, Vec::new())
+        let words: Vec<&str> = if !line.contains("\"") {
+            line.split(' ').collect()
+        } else {
+            let mut res: Vec<&str> = Vec::new();
+
+            let mut in_string = false;
+            let mut index = 0;
+
+            let working_line: Vec<char> = line.chars().collect();
+
+            for j in 0..line.len() {
+                let c = working_line[j];
+
+                if c == '"' && !in_string {
+                    in_string = true;
+                } else if c == '"' && in_string {
+                    in_string = false;
+                } else if c == ' ' && !in_string {
+                    if index != j {
+                        res.push(&line[index..j]);
+                    }
+                    index = j + 1;
+                }
+                if j == line.len() - 1 {
+                    res.push(&line[index..j + 1]);
+                }
+            }
+
+            res
+        };
+
+        match words[0] {
+            "$" => (CodeList::Attribution, vec![&self.acc]),
+            _ => (CodeList::Null, Vec::new()),
+        }
     }
 }
