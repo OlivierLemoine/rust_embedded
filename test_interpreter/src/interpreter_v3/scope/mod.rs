@@ -42,13 +42,13 @@ impl<'a> Scope<'a> {
             return;
         }
 
-        let (instruction, args) = self.decode();
+        let (instruction, mut args) = self.decode();
 
         match instruction {
             CodeList::Null => {}
+            CodeList::Immediate => {}
             CodeList::Attribution => {
-                let a = args[0].clone();
-                self.vars.push(a);
+                self.vars.push(args.remove(0));
             }
             CodeList::Def => {}
             CodeList::Call => {}
@@ -57,7 +57,7 @@ impl<'a> Scope<'a> {
         self.instruction_pointer += 1;
     }
 
-    fn decode(&mut self) -> (CodeList, Vec<&Var<'a>>) {
+    fn decode(&self) -> (CodeList, Vec<Var<'a>>) {
         let line = self.code[self.instruction_pointer];
 
         if line.starts_with("//") || line.is_empty() {
@@ -96,37 +96,37 @@ impl<'a> Scope<'a> {
         };
 
         match words[0] {
-            // "$" => (CodeList::Def, {
-            //         let tmp = self;
-            //         // let a = self.parse_var();
-            //         // vec![a]
-            //     }),
+            "$" => (CodeList::Immediate, {
+                // let a = self.parse_var(words[1]);
+                vec![Var::new(None)]
+            }),
             ">" => (CodeList::Attribution, {
-                self.acc.rename(words[1]);
-                vec![&self.acc]
+                let mut v = self.acc.clone();
+                v.rename(words[1]);
+                vec![v]
             }),
             _ => (CodeList::Null, Vec::new()),
         }
     }
 
-    fn parse_var(&mut self, value: &str) -> &Var {
+    fn parse_var(&self, value: &'a str) -> Var {
         match self.find_var(value) {
             Some(v) => v,
-            None => &self.vars[0],
+            None => induce_var_val(value),
         }
     }
 
-    fn find_var(&self, name: &str) -> Option<&Var> {
+    fn find_var(&self, name: &str) -> Option<Var> {
         match self.vars.iter().find(|a| a.match_name(name)) {
-            Some(v) => Some(v),
+            Some(v) => Some(v.clone()),
             None => match self.parent_scope {
                 Some(p) => p.find_var(name),
                 None => None,
             },
         }
     }
+}
 
-    fn induce_var_val(&self) -> Var {
-        Var::new(None)
-    }
+fn induce_var_val(value: &str) -> Var {
+    Var::new(None)
 }
