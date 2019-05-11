@@ -94,10 +94,10 @@ pub fn run(lines: &Vec<&str>, at: usize, mut ctx: Ctx, debug: &mut DebugParams) 
                                 "{}",
                                 match input.next() {
                                     Some(v) => match ctx.find(v.trim()) {
-                                        Some(value) => value.get_string(),
+                                        Some(value) => value.get_string(i),
                                         None => String::from("Unknown variable"),
                                     },
-                                    None => acc.get_string(),
+                                    None => acc.get_string(i),
                                 }
                             );
                             continue;
@@ -226,7 +226,7 @@ pub fn run(lines: &Vec<&str>, at: usize, mut ctx: Ctx, debug: &mut DebugParams) 
                 } else {
                     acc.clone()
                 }
-                .get_bool();
+                .get_bool(i);
 
                 if b {
                     let mut vars: Vec<Var> = Vec::new();
@@ -354,14 +354,14 @@ pub fn run(lines: &Vec<&str>, at: usize, mut ctx: Ctx, debug: &mut DebugParams) 
                         };
 
                         acc = match func {
-                            "eq" => Var::boolean("", r1.get_number() == r2.get_number()),
+                            "eq" => Var::boolean("", r1.get_number(i) == r2.get_number(i)),
                             x => Var::number(
                                 "",
                                 match x {
-                                    "add" => r1.get_number() + r2.get_number(),
-                                    "sub" => r1.get_number() - r2.get_number(),
-                                    "mul" => r1.get_number() * r2.get_number(),
-                                    "div" => r1.get_number() / r2.get_number(),
+                                    "add" => r1.get_number(i) + r2.get_number(i),
+                                    "sub" => r1.get_number(i) - r2.get_number(i),
+                                    "mul" => r1.get_number(i) * r2.get_number(i),
+                                    "div" => r1.get_number(i) / r2.get_number(i),
                                     _ => 0.0,
                                 },
                             ),
@@ -375,7 +375,7 @@ pub fn run(lines: &Vec<&str>, at: usize, mut ctx: Ctx, debug: &mut DebugParams) 
                         };
 
                         match func {
-                            "print" => println!("{}", r1.get_string()),
+                            "print" => println!("{}", r1.get_string(i)),
                             _ => {}
                         }
                     }
@@ -393,11 +393,11 @@ pub fn run(lines: &Vec<&str>, at: usize, mut ctx: Ctx, debug: &mut DebugParams) 
 
                         match func {
                             "at" => {
-                                let v1 = r1.get_array();
-                                let v2 = r2.get_number() as usize;
+                                let v1 = r1.get_array(i);
+                                let v2 = r2.get_number(i) as usize;
 
                                 acc = if v2 < v1.len() {
-                                    r1.get_array()[r2.get_number() as usize].clone()
+                                    r1.get_array(i)[r2.get_number(i) as usize].clone()
                                 } else {
                                     Var::new("", 0)
                                 };
@@ -416,7 +416,7 @@ pub fn run(lines: &Vec<&str>, at: usize, mut ctx: Ctx, debug: &mut DebugParams) 
                             acc.clone()
                         };
 
-                        acc = Var::number("", r1.get_array().len() as f32);
+                        acc = Var::number("", r1.get_array(i).len() as f32);
                     }
                     "arr" => {
                         let mut vars: Vec<Var> = Vec::new();
@@ -431,7 +431,7 @@ pub fn run(lines: &Vec<&str>, at: usize, mut ctx: Ctx, debug: &mut DebugParams) 
                         let mut vars: Vec<Var> = Vec::new();
 
                         for j in 1..words.len() {
-                            let mut tmp = get_value(words[j], &ctx, i).get_array();
+                            let mut tmp = get_value(words[j], &ctx, i).get_array(i);
                             vars.append(&mut tmp);
                         }
 

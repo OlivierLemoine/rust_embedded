@@ -151,7 +151,7 @@ impl Var {
         }
     }
 
-    pub fn get_number(&self) -> f32 {
+    pub fn get_number(&self, at: usize) -> f32 {
         match self.var_type {
             VarType::None => 0.0,
             VarType::Number => self.num_value,
@@ -166,12 +166,12 @@ impl Var {
                     0.0
                 }
             }
-            VarType::Array => panic!("An array can't be converted into a number"),
-            VarType::Function => panic!("A function can't be converted into a number"),
+            VarType::Array => panic!("At line {} : An array can't be converted into a number", at + 1),
+            VarType::Function => panic!("At line {} : A function can't be converted into a number", at + 1),
         }
     }
 
-    pub fn get_string(&self) -> String {
+    pub fn get_string(&self, at: usize) -> String {
         match self.var_type {
             VarType::None => String::from(""),
             VarType::Number => self.num_value.to_string(),
@@ -187,7 +187,7 @@ impl Var {
                 let mut res = String::from("[");
 
                 for i in self.arr_value.iter() {
-                    let s = i.get_string();
+                    let s = i.get_string(at);
                     res.push_str(s.as_str());
                     res.push_str(", ");
                 }
@@ -203,7 +203,7 @@ impl Var {
         }
     }
 
-    pub fn get_bool(&self) -> bool {
+    pub fn get_bool(&self, at: usize) -> bool {
         match self.var_type {
             VarType::None => false,
             VarType::Number => !(self.num_value == 0.0),
@@ -212,12 +212,12 @@ impl Var {
                 _ => false,
             },
             VarType::Bool => self.bool_value,
-            VarType::Array => panic!("A function can't be converted into a boolean"),
-            VarType::Function => panic!("A function can't be converted into a boolean"),
+            VarType::Array => panic!("At line {} : A function can't be converted into a boolean", at + 1),
+            VarType::Function => panic!("At line {} : A function can't be converted into a boolean", at + 1),
         }
     }
 
-    pub fn get_array(&self) -> Vec<Var> {
+    pub fn get_array(&self, at: usize) -> Vec<Var> {
         match self.var_type {
             VarType::None => Vec::with_capacity(1),
             VarType::Number => vec![self.clone()],
@@ -242,7 +242,7 @@ impl Var {
 
                 res
             }
-            VarType::Function => panic!("A function can't be converted into an array"),
+            VarType::Function => panic!("At line {} : A function can't be converted into an array", at + 1),
         }
     }
 

@@ -1,14 +1,14 @@
 def remove_first_element array
-    def _rem _array n
+    def _rem n
         eq n 0
         if
             arr
             return
         endif
         sub n 1
-        _rem _array
+        _rem
         > tmp1
-        at _array n
+        at array n
         > tmp2
         push tmp1 tmp2
         return
@@ -16,37 +16,18 @@ def remove_first_element array
     len array
     > l
     sub l 1
-    _rem array
+    _rem
     return
 end
 
-def fn1 data
-    at data 0
-    add 2
-    > res1
-    arr res1
-    > res2
-    
-    remove_first_element data
-    > data
-    at data 0
-    > cb
-
-    remove_first_element data
-    > res3
-    concat res2 res3
-    
-    call cb
-    
+def for index max_index fn args
+    eq index max_index
+    if 
+        return args
+    endif
+    add index 1
+    > new_index
+    call fn args
+    for new_index max_index fn
     return
 end
-
-def fn2 data
-    at data 0
-    mul 1.5
-    return
-end
-
-arr 2 fn1 fn2
-fn1
-print
