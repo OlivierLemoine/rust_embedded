@@ -15,7 +15,10 @@ impl<'a> Interpreter<'a> {
     }
 
     pub fn start(&self) {
-        let global_scope = scope::Scope::new(self.lines[..].to_vec());
-        global_scope.run();
+        let mut global_scope = scope::Scope::new(self.lines[..].to_vec());
+
+        while !global_scope.has_finished() {
+            global_scope.step();
+        }
     }
 }
