@@ -109,13 +109,21 @@ impl<'a> Scope<'a> {
         }
     }
 
-    fn parse_var(&mut self) -> &Var {
-        let res = self.find_var();
-        res
+    fn parse_var(&mut self, value: &str) -> &Var {
+        match self.find_var(value) {
+            Some(v) => v,
+            None => &self.vars[0],
+        }
     }
 
-    fn find_var(&self) -> &Var {
-        &self.vars[0]
+    fn find_var(&self, name: &str) -> Option<&Var> {
+        match self.vars.iter().find(|a| a.match_name(name)) {
+            Some(v) => Some(v),
+            None => match self.parent_scope {
+                Some(p) => p.find_var(name),
+                None => None,
+            },
+        }
     }
 
     fn induce_var_val(&self) -> Var {

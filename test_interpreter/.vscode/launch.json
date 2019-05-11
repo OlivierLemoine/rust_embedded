@@ -5,6 +5,14 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "type": "lldb",
+            "request": "launch",
+            "name": "(LLVM) Launch",
+            "program": "${workspaceFolder}/target/x86_64-pc-windows-msvc/debug/test_interpreter",
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
             "name": "(gdb) Launch",
             "type": "cppdbg",
             "request": "launch",

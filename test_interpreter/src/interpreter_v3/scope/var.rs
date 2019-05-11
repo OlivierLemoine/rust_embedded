@@ -25,6 +25,13 @@ impl<'a> Var<'a> {
         }
     }
 
+    pub fn match_name(&self, value: &str) -> bool {
+        match self.name {
+            Some(v) => v == value,
+            None => false,
+        }
+    }
+
     pub fn integer(&mut self, value: u32) {
         self.data_raw = DataRep::U32(value);
     }
