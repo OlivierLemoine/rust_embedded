@@ -1,33 +1,37 @@
-def remove_first_element array
-    def _rem n
-        eq n 0
-        if
-            arr
-            return
-        endif
-        sub n 1
-        _rem
-        > tmp1
-        at array n
-        > tmp2
-        push tmp1 tmp2
-        return
-    end
-    len array
-    > l
-    sub l 1
-    _rem
-    return
-end
+$ 1
+> test
+print test
 
-def for index max_index fn args
-    eq index max_index
-    if 
-        return args
-    endif
-    add index 1
-    > new_index
-    call fn args
-    for new_index max_index fn
-    return
-end
+// def remove_first_element array
+//     def _rem n
+//         eq n 0
+//         if
+//             arr
+//             return
+//         endif
+//         sub n 1
+//         _rem
+//         > tmp1
+//         at array n
+//         > tmp2
+//         push tmp1 tmp2
+//         return
+//     end
+//     len array
+//     > l
+//     sub l 1
+//     _rem
+//     return
+// end
+
+// def for index max_index fn args
+//     eq index max_index
+//     if 
+//         return args
+//     endif
+//     add index 1
+//     > new_index
+//     call fn args
+//     for new_index max_index fn
+//     return
+// end

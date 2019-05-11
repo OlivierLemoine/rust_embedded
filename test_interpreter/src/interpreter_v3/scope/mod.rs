@@ -11,6 +11,7 @@ pub struct Scope<'a> {
     code: Vec<&'a str>,
     flags: Flags,
 
+    parent_scope: Option<&'a Scope<'a>>,
     vars: Vec<Var<'a>>,
     acc: Var<'a>,
 
@@ -23,6 +24,7 @@ impl<'a> Scope<'a> {
             code,
             flags: Flags::new(),
 
+            parent_scope: None,
             vars: Vec::new(),
             acc: Var::new(None),
 
@@ -45,7 +47,8 @@ impl<'a> Scope<'a> {
         match instruction {
             CodeList::Null => {}
             CodeList::Attribution => {
-                self.vars.push(args[0].clone());
+                let a = args[0].clone();
+                self.vars.push(a);
             }
             CodeList::Def => {}
             CodeList::Call => {}
@@ -54,7 +57,7 @@ impl<'a> Scope<'a> {
         self.instruction_pointer += 1;
     }
 
-    fn decode(&self) -> (CodeList, Vec<&Var<'a>>) {
+    fn decode(&mut self) -> (CodeList, Vec<&Var<'a>>) {
         let line = self.code[self.instruction_pointer];
 
         if line.starts_with("//") || line.is_empty() {
@@ -93,8 +96,29 @@ impl<'a> Scope<'a> {
         };
 
         match words[0] {
-            "$" => (CodeList::Attribution, vec![&self.acc]),
+            // "$" => (CodeList::Def, {
+            //         let tmp = self;
+            //         // let a = self.parse_var();
+            //         // vec![a]
+            //     }),
+            ">" => (CodeList::Attribution, {
+                self.acc.rename(words[1]);
+                vec![&self.acc]
+            }),
             _ => (CodeList::Null, Vec::new()),
         }
+    }
+
+    fn parse_var(&mut self) -> &Var {
+        let res = self.find_var();
+        res
+    }
+
+    fn find_var(&self) -> &Var {
+        &self.vars[0]
+    }
+
+    fn induce_var_val(&self) -> Var {
+        Var::new(None)
     }
 }
