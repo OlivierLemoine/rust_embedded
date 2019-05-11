@@ -44,7 +44,9 @@ impl<'a> Scope<'a> {
 
         match instruction {
             CodeList::Null => {}
-            CodeList::Attribution => {}
+            CodeList::Attribution => {
+                self.vars.push(args[0].clone());
+            }
             CodeList::Def => {}
             CodeList::Call => {}
         }
@@ -52,7 +54,7 @@ impl<'a> Scope<'a> {
         self.instruction_pointer += 1;
     }
 
-    fn decode(&self) -> (CodeList, Vec<&Var>) {
+    fn decode(&self) -> (CodeList, Vec<&Var<'a>>) {
         let line = self.code[self.instruction_pointer];
 
         if line.starts_with("//") || line.is_empty() {
