@@ -88,11 +88,11 @@ impl<'a> Scope<'a> {
             //     // let a = self.parse_var(words[1]);
             //     vec![Var::new(None)]
             // }),
-            // ">" => (CodeList::Attribution, {
-            //     let mut v = self.acc.clone();
-            //     v.rename(words[1]);
-            //     vec![v]
-            // }),
+            ">" => {
+                let mut v = self.acc.clone();
+                v.rename(words[1]);
+                self.vars.push(v);
+            }
             _ => {}
         }
     }
