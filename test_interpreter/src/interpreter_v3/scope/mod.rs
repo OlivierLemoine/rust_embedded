@@ -84,10 +84,14 @@ impl<'a> Scope<'a> {
         };
 
         match words[0] {
-            // "$" => (CodeList::Immediate, {
-            //     // let a = self.parse_var(words[1]);
-            //     vec![Var::new(None)]
-            // }),
+            "$" => {
+                let tmp: Option<&Var<'a>> = self.find_var(words[1]);
+                let a: Var<'a> = match tmp {
+                    Some(v) => v.clone(),
+                    None => induce_var_val(words[1]),
+                };
+                self.acc = a;
+            }
             ">" => {
                 let mut v = self.acc.clone();
                 v.rename(words[1]);
@@ -97,20 +101,17 @@ impl<'a> Scope<'a> {
         }
     }
 
-    fn parse_var(&self, value: &'a str) -> Var {
-        match self.find_var(value) {
-            Some(v) => v,
-            None => induce_var_val(value),
-        }
-    }
-
-    fn find_var(&self, name: &str) -> Option<Var> {
+    fn find_var(&self, name: &str) -> Option<&Var<'a>> {
         match self.vars.iter().find(|a| a.match_name(name)) {
-            Some(v) => Some(v.clone()),
-            None => match self.parent_scope {
-                Some(p) => p.find_var(name),
-                None => None,
-            },
+            Some(v) => {
+                let a = v;
+                Some(a)
+            }
+            None => None,
+            // None => match self.parent_scope {
+            //     Some(p) => p.find_var(name),
+            //     None => None,
+            // },
         }
     }
 }
