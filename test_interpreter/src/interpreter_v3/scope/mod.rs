@@ -1,8 +1,6 @@
-mod code_list;
 mod flags;
 mod var;
 
-use code_list::CodeList;
 use flags::Flags;
 use var::Var;
 
@@ -42,26 +40,16 @@ impl<'a> Scope<'a> {
             return;
         }
 
-        let (instruction, mut args) = self.decode();
-
-        match instruction {
-            CodeList::Null => {}
-            CodeList::Immediate => {}
-            CodeList::Attribution => {
-                self.vars.push(args.remove(0));
-            }
-            CodeList::Def => {}
-            CodeList::Call => {}
-        }
+        self.decode();
 
         self.instruction_pointer += 1;
     }
 
-    fn decode(&self) -> (CodeList, Vec<Var<'a>>) {
+    fn decode(&mut self) {
         let line = self.code[self.instruction_pointer];
 
         if line.starts_with("//") || line.is_empty() {
-            return (CodeList::Null, Vec::new());
+            return;
         }
 
         let words: Vec<&str> = if !line.contains("\"") {
@@ -96,16 +84,16 @@ impl<'a> Scope<'a> {
         };
 
         match words[0] {
-            "$" => (CodeList::Immediate, {
-                // let a = self.parse_var(words[1]);
-                vec![Var::new(None)]
-            }),
-            ">" => (CodeList::Attribution, {
-                let mut v = self.acc.clone();
-                v.rename(words[1]);
-                vec![v]
-            }),
-            _ => (CodeList::Null, Vec::new()),
+            // "$" => (CodeList::Immediate, {
+            //     // let a = self.parse_var(words[1]);
+            //     vec![Var::new(None)]
+            // }),
+            // ">" => (CodeList::Attribution, {
+            //     let mut v = self.acc.clone();
+            //     v.rename(words[1]);
+            //     vec![v]
+            // }),
+            _ => {}
         }
     }
 
