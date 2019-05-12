@@ -88,7 +88,7 @@ impl<'a> Scope<'a> {
                 let tmp: Option<&Var<'a>> = self.find_var(words[1]);
                 let a: Var<'a> = match tmp {
                     Some(v) => v.clone(),
-                    None => induce_var_val(words[1]),
+                    None => induce_var_val(words[1]).unwrap(),
                 };
                 self.acc = a;
             }
@@ -116,6 +116,20 @@ impl<'a> Scope<'a> {
     }
 }
 
-fn induce_var_val(value: &str) -> Var {
-    Var::new(None)
+fn induce_var_val(value: &str) -> Result<Var, &str> {
+    let mut res = Var::new(None);
+    if value.starts_with("\"") {
+        res.string(Box::new(String::from(value)));
+    } else if value == "true" || value == "false" {
+        res.boolean(value.parse().unwrap());
+    } else {
+        match value.parse::<i32>() {
+            Ok(v) => res.integer(v),
+            Err(_) => match value.parse::<f32>() {
+                Ok(v) => res.float(v),
+                Err(_) => return Err("Could not find a suitable type for this value"),
+            },
+        }
+    }
+    Ok(res)
 }

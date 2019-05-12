@@ -3,7 +3,7 @@ use super::Scope;
 #[derive(Clone)]
 enum DataRep<'a> {
     None,
-    U32(u32),
+    I32(i32),
     F32(f32),
     Bool(bool),
     Str(Box<String>),
@@ -21,7 +21,7 @@ impl<'a> Var<'a> {
     pub fn new(name: Option<&'a str>) -> Var<'a> {
         Var {
             name,
-            data_raw: DataRep::U32(0),
+            data_raw: DataRep::I32(0),
         }
     }
 
@@ -32,8 +32,8 @@ impl<'a> Var<'a> {
         }
     }
 
-    pub fn integer(&mut self, value: u32) {
-        self.data_raw = DataRep::U32(value);
+    pub fn integer(&mut self, value: i32) {
+        self.data_raw = DataRep::I32(value);
     }
 
     pub fn float(&mut self, value: f32) {
@@ -60,16 +60,16 @@ impl<'a> Var<'a> {
         self.name = Some(name);
     }
 
-    pub fn get_integer(&self) -> Result<u32, &str> {
+    pub fn get_integer(&self) -> Result<i32, &str> {
         let a = &self.data_raw;
         match &self.data_raw {
             DataRep::None => Ok(0),
-            DataRep::U32(v) => Ok(*v),
-            DataRep::F32(v) => Ok(*v as u32),
-            DataRep::Bool(v) => Ok(1),
-            DataRep::Str(v) => Err("A Strintcannot be converted into an integer"),
-            DataRep::Arr(v) => Err("An Array cannot be converted into an integer"),
-            DataRep::Fun(v) => Err("A Function cannot be converted into an integer"),
+            DataRep::I32(v) => Ok(*v),
+            DataRep::F32(v) => Ok(*v as i32),
+            DataRep::Bool(_) => Ok(1),
+            DataRep::Str(_) => Err("A Strintcannot be converted into an integer"),
+            DataRep::Arr(_) => Err("An Array cannot be converted into an integer"),
+            DataRep::Fun(_) => Err("A Function cannot be converted into an integer"),
         }
     }
 }
