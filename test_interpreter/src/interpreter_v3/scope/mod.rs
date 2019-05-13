@@ -107,11 +107,10 @@ impl<'a> Scope<'a> {
                 let a = v;
                 Some(a)
             }
-            None => None,
-            // None => match self.parent_scope {
-            //     Some(p) => p.find_var(name),
-            //     None => None,
-            // },
+            None => match self.parent_scope {
+                Some(p) => p.find_var(name),
+                None => None,
+            },
         }
     }
 }
