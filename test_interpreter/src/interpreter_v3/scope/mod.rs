@@ -97,6 +97,16 @@ impl<'a> Scope<'a> {
                 v.rename(words[1]);
                 self.vars.push(v);
             }
+            "print" => {
+                let mut v = self.find_var(words[1]);
+                match v {
+                    Some(val) => println!("{}", val.get_string().unwrap()),
+                    None => println!(
+                        "{}",
+                        induce_var_val(words[1]).unwrap().get_string().unwrap()
+                    ),
+                }
+            }
             _ => {}
         }
     }

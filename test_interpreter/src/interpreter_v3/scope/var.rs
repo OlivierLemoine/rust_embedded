@@ -66,10 +66,41 @@ impl<'a> Var<'a> {
             DataRep::None => Ok(0),
             DataRep::I32(v) => Ok(*v),
             DataRep::F32(v) => Ok(*v as i32),
-            DataRep::Bool(_) => Ok(1),
+            DataRep::Bool(v) => Ok(if *v == true { 1 } else { 0 }),
             DataRep::Str(_) => Err("A Strintcannot be converted into an integer"),
             DataRep::Arr(_) => Err("An Array cannot be converted into an integer"),
             DataRep::Fun(_) => Err("A Function cannot be converted into an integer"),
+        }
+    }
+
+    pub fn get_string(&self) -> Result<String, &str> {
+        let a = &self.data_raw;
+        match &self.data_raw {
+            DataRep::None => Ok(String::from("")),
+            DataRep::I32(v) => Ok(v.to_string()),
+            DataRep::F32(v) => Ok(v.to_string()),
+            DataRep::Bool(v) => Ok(String::from(if *v == true { "true" } else { "false" })),
+            DataRep::Str(v) => Ok(*v.clone()),
+            DataRep::Arr(v) => {
+                let mut res = String::from("[");
+
+                for i in v.iter() {
+                    let s = match i.get_string() {
+                        Ok(val) => val,
+                        Err(e) => return Err(e),
+                    };
+                    res.push_str(s.as_str());
+                    res.push_str(", ");
+                }
+                if res.len() > 3 {
+                    res.remove(res.len() - 1);
+                    res.remove(res.len() - 1);
+                }
+                res.push(']');
+
+                Ok(res)
+            }
+            DataRep::Fun(v) => Ok(String::from("Function")),
         }
     }
 }
