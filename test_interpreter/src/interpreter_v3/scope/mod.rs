@@ -30,6 +30,10 @@ impl<'a> Scope<'a> {
         }
     }
 
+    pub fn get_description(&self) -> String {
+        format!("Function : {}", String::from(self.code[0]))
+    }
+
     pub fn has_finished(&self) -> bool {
         self.flags.has_finished()
     }
@@ -97,8 +101,43 @@ impl<'a> Scope<'a> {
                 v.rename(words[1]);
                 self.vars.push(v);
             }
+            "def" => {
+                let mut v = Var::new(Some(words[1]));
+
+                let beginning = self.instruction_pointer;
+
+                let mut depth = 0;
+                loop {
+                    self.instruction_pointer += 1;
+
+                    let new_l = self.code[self.instruction_pointer].trim();
+
+                    if new_l.starts_with("def") {
+                        depth += 1;
+                    } else if new_l == "end" {
+                        depth -= 1;
+                        if depth < 0 {
+                            break;
+                        }
+                    }
+                }
+
+                v.function(Box::new(Scope::new(
+                    self.code[beginning..self.instruction_pointer].to_vec(),
+                )));
+
+                self.vars.push(v);
+            }
+            "call" => {
+                match self.find_var(words[1]){
+                    Some(v) => {
+
+                    }
+                    None => panic!("Unknown function name"),
+                }
+            }
             "print" => {
-                let mut v = self.find_var(words[1]);
+                let v = self.find_var(words[1]);
                 match v {
                     Some(val) => println!("{}", val.get_string().unwrap()),
                     None => println!(

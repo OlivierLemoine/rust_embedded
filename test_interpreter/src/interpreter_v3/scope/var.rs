@@ -100,7 +100,7 @@ impl<'a> Var<'a> {
 
                 Ok(res)
             }
-            DataRep::Fun(v) => Ok(String::from("Function")),
+            DataRep::Fun(v) => Ok(v.get_description()),
         }
     }
 }
